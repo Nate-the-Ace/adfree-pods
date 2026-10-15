@@ -280,6 +280,7 @@ function setMode(reg) {
   $('loginForm').querySelector('button').textContent = reg ? 'Create account' : 'Sign in';
   $('toggle').textContent = reg ? 'I already have an account' : 'Create an account';
   $('invite').hidden = !reg;
+  $('inviteLabel').hidden = !reg;
   $('invite').required = reg;
   $('pass').autocomplete = reg ? 'new-password' : 'current-password';
 }
@@ -397,7 +398,7 @@ $('adminSec').addEventListener('click', async (e) => {
   const d = e.target.dataset ?? {};
   try {
     if (d.copy) copy(inviteLink(d.copy), 'adminMsg');
-    else if (d.revoke) { await apiJson('/admin/invites?code=' + encodeURIComponent(d.revoke), { method: 'DELETE' }); loadAdmin(); }
+    else if (d.revoke && confirm('Revoke this invite? The link will stop working.')) { await apiJson('/admin/invites?code=' + encodeURIComponent(d.revoke), { method: 'DELETE' }); loadAdmin(); }
     else if (d.remove && confirm(`Remove ${d.remove} and their listening progress?`)) {
       await apiJson('/admin/users?name=' + encodeURIComponent(d.remove), { method: 'DELETE' }); loadAdmin();
     }

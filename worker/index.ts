@@ -115,10 +115,9 @@ async function auth(req: Request, url: URL, env: Env, c: Cors): Promise<Response
       if (!env.ACCESS_KEY || !sameString(given, env.ACCESS_KEY)) return json(403, { error: 'wrong invite code' }, c);
     } else {
       inviteCode = normalizeCode(given);
-      const inv = await env.DB.prepare('SELECT 1 AS ok FROM invites WHERE code = ? AND used_by IS NULL AND revoked = 0 AND expires > ?')
-        .bind(inviteCode, Date.now())
-        .first();
-      if (!inv) return json(403, { error: 'invite code is invalid, used, or expired' }, c);
+      const inv = await env.DB.prepare('SELECT used_by, revoked, expires FROM invites WHERE code = ?').bind(inviteCode).first<{ used_by: string | null; revoked: number; expires: number }>();
+      const why = !inv ? 'not recognized. Check it was copied completely' : inv.used_by ? 'already used' : inv.revoked ? 'revoked by the admin' : inv.expires <= Date.now() ? 'expired' : '';
+      if (why) return json(403, { error: `This invite code is ${why}.` }, c);
     }
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const hash = await hashPassword(password, salt);
@@ -136,7 +135,7 @@ async function auth(req: Request, url: URL, env: Env, c: Cors): Promise<Response
         .run();
       if (!used.meta.changes) {
         await env.DB.prepare('DELETE FROM users WHERE name = ?').bind(name).run();
-        return json(403, { error: 'invite code is invalid, used, or expired' }, c);
+        return json(403, { error: 'This invite code was just used by someone else.' }, c);
       }
     }
     return json(200, { token: await newSession(env, name), user: name, admin: count === 0 }, c);
