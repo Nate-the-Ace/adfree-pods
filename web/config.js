@@ -13,4 +13,6 @@ export const FEEDS = [
   { name: 'Cool People Who Did Cool Stuff', art: ART('Podcasts211/v4/48/aa/91/48aa9130-f795-bf5f-a00b-aed60fcfbacf/mza_14716879842823548197.jpg'), url: `${CZM}/45bcda9a-4724-45c0-82ca-ae7f00e1dd18/f21245f2-a297-42f7-a016-ae7f00e390c4/podcast.rss` },
   { name: 'Hood Politics with Prop', art: ART('Podcasts126/v4/12/52/02/12520240-67c0-182d-699f-39a593f41454/mza_18071304291313615327.jpg'), url: `${CZM}/7e1493c7-ebf2-4878-bd99-ae3900554de8/71ddab40-adc1-47f6-b7df-ae3900554dff/podcast.rss` },
   { name: 'Ghost Church by Jamie Loftus', art: ART('Podcasts211/v4/3d/f6/91/3df69100-8182-468a-59d5-11d099be973c/mza_18071634405969007278.jpg'), url: `${CZM}/e3a389d1-2026-4354-a3a2-ae780151014c/fc43d471-035b-486d-b97d-ae780151c077/podcast.rss` },
+  // Not Cool Zone: first show from another distributor (Libsyn). See docs/research/.
+  { name: 'The Know Rogan Experience', art: ART('Podcasts211/v4/bc/47/ec/bc47ecd7-1e8a-23b0-ed37-649c44c50777/mza_7718141950099779240.png'), url: 'https://rss.libsyn.com/shows/561260/destinations/4849865.xml' },
 ];

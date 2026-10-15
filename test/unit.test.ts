@@ -13,6 +13,8 @@ test('strategy: omny/triton/podtrac hosts get the crawler UA', () => {
     'https://traffic.omny.fm/d/clips/a/audio.mp3',
     'https://iheartmedia.mc.tritondigital.com/X/media/a.mp3',
     'https://www.omnycontent.com/d/playlist/a/podcast.rss',
+    'https://traffic.libsyn.com/secure/x/a.mp3',
+    'https://rss.libsyn.com/shows/1/destinations/2.xml',
   ]) {
     const s = strategyFor(u);
     assert.equal(s.name, 'crawler-ua', u);
