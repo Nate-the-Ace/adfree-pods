@@ -137,17 +137,40 @@ function renderResume() {
 
 // ---- shows ----
 function renderGrid() {
-  $('grid').innerHTML = FEEDS.map((f) => `<button class="tile" role="listitem" data-url="${esc(f.url)}" aria-label="${esc(f.name)}">
-    <img src="${esc(f.art)}" alt="" loading="lazy"><span class="label">${esc(f.name)}</span></button>`).join('');
+  for (const t of $('grid').querySelectorAll('.tile')) t.remove();
+  $('grid').insertAdjacentHTML('afterbegin', FEEDS.map((f) => `<button class="tile" role="listitem" data-url="${esc(f.url)}" aria-label="${esc(f.name)}">
+    <img src="${esc(f.art)}" alt="" loading="lazy"><span class="label">${esc(f.name)}</span></button>`).join(''));
+}
+
+// Put the drawer right after the last tile of the selected tile's row, so rows below get pushed down.
+function placeDrawer() {
+  const grid = $('grid'), drawer = $('drawer');
+  const tiles = [...grid.querySelectorAll('.tile')];
+  const sel = tiles.find((t) => t.dataset.url === openFeed);
+  if (!sel) { grid.append(drawer); return; }
+  const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+  const i = tiles.indexOf(sel);
+  tiles[Math.min((Math.floor(i / cols) + 1) * cols, tiles.length) - 1].after(drawer);
+  drawer.style.setProperty('--cx', `${sel.offsetLeft + sel.offsetWidth / 2}px`);
 }
 
 // Open a show's drawer (or close it with null). Other tiles grey out while it is open.
 function openShow(url) {
+  const drawer = $('drawer');
+  const wasOpen = drawer.classList.contains('open');
   openFeed = url;
   $('grid').classList.toggle('open', !!url);
-  $('drawer').classList.toggle('open', !!url);
-  for (const t of $('grid').children) t.classList.toggle('active', t.dataset.url === url);
-  if (!url) return;
+  for (const t of $('grid').querySelectorAll('.tile')) t.classList.toggle('active', t.dataset.url === url);
+  if (!url) {
+    drawer.classList.remove('open');
+    setTimeout(() => { if (!openFeed) placeDrawer(); }, 450); // park it after it has finished closing
+    return;
+  }
+  // Moving to another row: collapse in place, relocate, then open so it slides out from the new tile.
+  drawer.classList.remove('open');
+  placeDrawer();
+  void drawer.offsetHeight;
+  drawer.classList.add('open');
   $('drawerTitle').textContent = FEEDS.find((f) => f.url === url).name;
   loadFeed(url);
   $('drawer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -237,6 +260,7 @@ $('grid').addEventListener('click', (e) => {
   const tile = e.target.closest('.tile');
   if (tile) openShow(tile.dataset.url === openFeed ? null : tile.dataset.url);
 });
+window.addEventListener('resize', () => { if (openFeed) placeDrawer(); });
 $('drawerClose').addEventListener('click', () => openShow(null));
 
 // ---- sign in ----
