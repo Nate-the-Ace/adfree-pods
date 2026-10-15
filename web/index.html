@@ -72,8 +72,30 @@
     .clean { color:var(--ok); } .suspected { color:var(--bad); } .unknown { color:var(--unk); }
 
     footer { position:fixed; left:0; right:0; bottom:0; z-index:5; background:var(--card); border-top:1px solid var(--line); padding:10px 16px calc(10px + env(safe-area-inset-bottom)); }
-    footer .in { max-width:760px; margin:0 auto; }
-    audio { width:100%; }
+    #bar { max-width:900px; margin:0 auto; display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"art meta ctl" "seek seek vol"; gap:6px 12px; align-items:center; }
+    #plArt { grid-area:art; width:48px; height:48px; border-radius:8px; object-fit:cover; box-shadow:0 2px 8px var(--shadow); }
+    #bar .meta { grid-area:meta; min-width:0; }
+    #now { font-weight:600; font-size:.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #now small { font-weight:400; color:var(--mute); }
+    #plShow { font-size:.75rem; color:var(--mute); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #bar .ctl { grid-area:ctl; display:flex; align-items:center; gap:2px; }
+    .ic { display:inline-flex; align-items:center; justify-content:center; padding:6px; border:0; background:none; color:var(--fg); border-radius:50%; }
+    .ic:hover { background:var(--line); border-color:transparent; }
+    .ic:disabled { opacity:.35; cursor:default; }
+    .ic.big { background:var(--accent); color:#fff; width:46px; height:46px; }
+    .ic.big:hover { background:var(--accent); filter:brightness(1.1); }
+    #bar .seek { grid-area:seek; display:flex; align-items:center; gap:8px; font-size:.75rem; color:var(--mute); font-variant-numeric:tabular-nums; }
+    #bar .seek input { flex:1; }
+    #bar .vol { grid-area:vol; display:flex; align-items:center; gap:4px; }
+    #bar .seek span { white-space:nowrap; }
+    #bar .seek input { min-width:0; }
+    #bar .vol { margin-left:6px; }
+    #bar .vol input { width:64px; }
+    @media (min-width:760px) { #bar .vol input { width:90px; } }
+    #bar input[type=range] { accent-color:var(--accent); height:20px; }
+    @media (min-width:760px) {
+      #bar { grid-template-columns:auto minmax(120px,1fr) auto minmax(180px,1.4fr) auto; grid-template-areas:"art meta ctl seek vol"; }
+    }
 
     #login { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:10; }
     #login[hidden] { display:none; }
@@ -186,9 +208,21 @@
   </div>
 </main>
 <footer>
-  <div class="in">
-    <div id="now"><small>Nothing playing</small></div>
-    <audio id="player" controls preload="metadata"></audio>
+  <div id="bar">
+    <img id="plArt" alt="" hidden>
+    <div class="meta"><div id="now"><small>Nothing playing</small></div><div id="plShow"></div></div>
+    <div class="ctl">
+      <button id="back" class="ic" aria-label="Back 10 seconds" title="Back 10 seconds (Left arrow)" disabled>
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/><text x="12" y="15.5" text-anchor="middle" font-size="8" font-weight="700" stroke="none" fill="currentColor">10</text></svg>
+      </button>
+      <button id="pp" class="ic big" aria-label="Play" title="Play / pause (Space)" disabled></button>
+      <button id="fwd" class="ic" aria-label="Forward 10 seconds" title="Forward 10 seconds (Right arrow)" disabled>
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.5h-4.5"/><text x="12" y="15.5" text-anchor="middle" font-size="8" font-weight="700" stroke="none" fill="currentColor">10</text></svg>
+      </button>
+    </div>
+    <div class="seek"><span id="tCur">0:00</span><input id="seek" type="range" min="0" max="0" step="1" value="0" aria-label="Seek" disabled><span id="tEnd">0:00</span></div>
+    <div class="vol" id="volBox"><button id="mute" class="ic" aria-label="Mute" title="Mute"></button><input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"></div>
+    <audio id="player" preload="metadata"></audio>
   </div>
 </footer>
 <script type="module" src="app.js"></script>

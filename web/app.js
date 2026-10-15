@@ -267,6 +267,7 @@ async function play(ep) {
   current = ep;
   say('');
   setLastFeed(ep.feed);
+  setNowPlaying(ep);
   $('now').innerHTML = '<small>Checking for ads…</small>';
   // Pick up the newest position from any device before starting.
   await refreshProgress().catch(() => {});
@@ -284,7 +285,7 @@ async function play(ep) {
   player.addEventListener('loadedmetadata', () => { if (start) player.currentTime = start; }, { once: true });
   await player.play().catch(() => {});
   lastSave = Date.now();
-  $('now').innerHTML = `<small>${esc(ep.title)}</small>`;
+  $('now').textContent = ep.title;
 }
 
 player.addEventListener('timeupdate', () => {
@@ -300,6 +301,88 @@ document.addEventListener('visibilitychange', () => {
   if (!session) return;
   if (document.hidden) { if (current && player.currentTime) pushPlayback(current, { keepalive: true }); }
   else if (player.paused) refreshProgress().catch(() => {});
+});
+
+// ---- player controls ----
+const ICONS = {
+  play: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>',
+  vol: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>',
+  mute: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>',
+};
+const SKIP_S = 10;
+let scrubbing = false;
+// iOS ignores programmatic volume; hide the slider there and leave volume to the hardware buttons.
+const canSetVolume = (() => { const v = player.volume; player.volume = 0.5; const ok = player.volume === 0.5; player.volume = v; return ok; })();
+$('volBox').hidden = !canSetVolume;
+
+function skip(delta) {
+  if (!current) return;
+  const end = Number.isFinite(player.duration) ? player.duration : Infinity;
+  player.currentTime = Math.max(0, Math.min(end, player.currentTime + delta));
+}
+function togglePlay() { if (current) (player.paused ? player.play().catch(() => {}) : player.pause()); }
+
+function updateControls() {
+  const on = !!current;
+  for (const id of ['back', 'fwd', 'pp', 'seek']) $(id).disabled = !on;
+  $('pp').innerHTML = player.paused ? ICONS.play : ICONS.pause;
+  $('pp').setAttribute('aria-label', player.paused ? 'Play' : 'Pause');
+  const dur = Number.isFinite(player.duration) ? player.duration : current?.durationSec ?? 0;
+  $('seek').max = dur || 0;
+  if (!scrubbing) $('seek').value = player.currentTime || 0;
+  $('tCur').textContent = clock(scrubbing ? Number($('seek').value) : player.currentTime || 0);
+  $('tEnd').textContent = dur ? '-' + clock(Math.max(0, dur - (scrubbing ? Number($('seek').value) : player.currentTime || 0))) : '0:00';
+}
+function updateVolumeUI() {
+  const muted = player.muted || player.volume === 0;
+  $('mute').innerHTML = muted ? ICONS.mute : ICONS.vol;
+  $('mute').setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+  $('vol').value = player.muted ? 0 : player.volume;
+}
+
+// What the bar shows for the current episode: show artwork, name, and system media controls.
+function setNowPlaying(ep) {
+  const show = shows().find((f) => f.url === ep.feed);
+  $('plArt').hidden = !show?.art;
+  if (show?.art) $('plArt').src = show.art;
+  $('plShow').textContent = show?.name ?? '';
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: ep.title, artist: show?.name ?? '', artwork: show?.art ? [{ src: show.art, sizes: '300x300' }] : [] });
+  }
+  updateControls();
+}
+
+$('back').addEventListener('click', () => skip(-SKIP_S));
+$('fwd').addEventListener('click', () => skip(SKIP_S));
+$('pp').addEventListener('click', togglePlay);
+$('seek').addEventListener('pointerdown', () => { scrubbing = true; });
+$('seek').addEventListener('input', updateControls);
+$('seek').addEventListener('change', () => { scrubbing = false; if (current) player.currentTime = Number($('seek').value); });
+$('vol').addEventListener('input', () => { player.muted = false; player.volume = Number($('vol').value); store('adfree.volume', player.volume); });
+$('mute').addEventListener('click', () => { player.muted = !player.muted; if (!player.muted && player.volume === 0) player.volume = 0.5; });
+for (const ev of ['play', 'pause', 'timeupdate', 'durationchange', 'loadedmetadata', 'emptied']) player.addEventListener(ev, updateControls);
+player.addEventListener('volumechange', updateVolumeUI);
+player.volume = load('adfree.volume', 1);
+updateVolumeUI();
+updateControls();
+
+if ('mediaSession' in navigator) {
+  const h = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch { /* action not supported here */ } };
+  h('play', () => player.play());
+  h('pause', () => player.pause());
+  h('seekbackward', (d) => skip(-(d.seekOffset || SKIP_S)));
+  h('seekforward', (d) => skip(d.seekOffset || SKIP_S));
+  h('seekto', (d) => { if (current && d.seekTime != null) player.currentTime = d.seekTime; });
+}
+
+// Desktop keys: Space plays or pauses, Left/Right skip 10 s. Ignored while typing or in a dialog.
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey || !current) return;
+  if (e.target.closest?.('input, textarea, select, button, [contenteditable]') || !$('panel').hidden || !$('login').hidden) return;
+  if (e.key === 'ArrowLeft') { e.preventDefault(); skip(-SKIP_S); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); skip(SKIP_S); }
+  else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
 });
 
 // ---- clicks ----
@@ -357,6 +440,9 @@ function signOut() {
   try { localStorage.removeItem('adfree.session'); } catch { /* nothing to clear */ }
   $('who').textContent = '';
   $('now').innerHTML = '<small>Nothing playing</small>';
+  $('plShow').textContent = '';
+  $('plArt').hidden = true;
+  updateControls();
   renderEpisodes();
   renderResume();
   showLogin(true);
