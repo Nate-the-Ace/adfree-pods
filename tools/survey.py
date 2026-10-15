@@ -45,7 +45,7 @@ def total_size(url, ua, edge=None):
     if edge:
         q = urllib.parse.urlencode({"url": url, "ua": ua})
         try:
-            d = json.load(urllib.request.urlopen(f"{edge}/?{q}", timeout=60))
+            d = json.load(urllib.request.urlopen(urllib.request.Request(f"{edge}/?{q}", headers={"User-Agent": BROWSER}), timeout=60))  # Cloudflare 403s the default Python UA
         except Exception:
             return None
         m = re.search(r"/(\d+)$", d.get("range") or "")

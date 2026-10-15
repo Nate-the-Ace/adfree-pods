@@ -26,3 +26,5 @@ Targets the stitched-in (dynamically inserted) ads, which the host adds at downl
 | Ads served to | everyone else, +400 to +1600 s | browsers and podcast apps from a home IP, up to about +390 s |
 | Ad time stable per UA? | yes | yes (same UA, same size, repeated) |
 | Fetch strategy in this repo | crawler UA | crawler UA (and the Worker already gets the original without it) |
+
+Other hosts (Simplecast, Acast, Audioboom, Megaphone, SoundCloud, Anchor) are in [shows.md](shows.md).
