@@ -1,0 +1,14 @@
+{
+  "name": "adfree-pods",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node src/server.ts",
+    "test": "node --test \"test/*.test.ts\""
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.0.0"
+  }
+}

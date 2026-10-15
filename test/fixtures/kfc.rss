@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:psc="http://podlove.org/simple-chapters" xmlns:omny="https://omny.fm/rss-extensions" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:acast="https://schema.acast.com/1.0/" xmlns:podcast="https://podcastindex.org/namespace/1.0" version="2.0">
+  <channel>
+    <omny:organizationId>e73c998e-6e60-432f-8610-ae210140c5b1</omny:organizationId>
+    <omny:networkId>20e860d7-8468-40c2-998c-ae3e01418c48</omny:networkId>
+    <omny:programId>79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae</omny:programId>
+    <omny:playlistId>756a2948-13e0-4c8b-ae8f-b4ba0139f9bf</omny:playlistId>
+    <language>en</language>
+    <atom:link rel="self" type="application/rss+xml" href="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/podcast.rss" />
+    <atom:link rel="first" type="application/rss+xml" href="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/podcast.rss?page=1" />
+    <atom:link rel="last" type="application/rss+xml" href="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/podcast.rss?page=1" />
+    <itunes:new-feed-url>https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/podcast.rss</itunes:new-feed-url>
+    <title>Knowledge Fight Country</title>
+    <link>https://www.iheart.com/podcast/1119-knowledge-fight-country-30942955</link>
+    <description><![CDATA[<p>Knowledge Fight Country is a platform where Dan Friesen and his guests can chew over the biggest and best ideas being disseminated in right wing media. Through a focus on Alex Jones and figures similar to him, this show will provide a humorous and fun layer on top of discussing the context on why liars lie and how they do it.</p>]]></description>
+    <itunes:type>episodic</itunes:type>
+    <itunes:summary>Knowledge Fight Country is a platform where Dan Friesen and his guests can chew over the biggest and best ideas being disseminated in right wing media. Through a focus on Alex Jones and figures similar to him, this show will provide a humorous and fun layer on top of discussing the context on why liars lie and how they do it.</itunes:summary>
+    <itunes:owner>
+      <itunes:name>iHeartPodcasts</itunes:name>
+      <itunes:email>applepodcast@howstuffworks.com</itunes:email>
+    </itunes:owner>
+    <itunes:author>Cool Zone Media &amp;  iHeartPodcasts</itunes:author>
+    <copyright>2026 iHeartMedia, Inc. © Any use of this intellectual property for text and data mining or computational analysis including as training material for artificial intelligence systems is strictly prohibited without express written consent from iHeartMedia</copyright>
+    <itunes:explicit>yes</itunes:explicit>
+    <itunes:category text="Comedy"></itunes:category>
+    <itunes:category text="News">
+      <itunes:category text="Politics" />
+    </itunes:category>
+    <itunes:category text="Society &amp; Culture"></itunes:category>
+    <itunes:image href="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/image.jpg?t=1791305771&amp;size=Large" />
+    <image>
+      <url>https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/image.jpg?t=1791305771&amp;size=Large</url>
+      <title>Knowledge Fight Country</title>
+      <link>https://www.iheart.com/podcast/1119-knowledge-fight-country-30942955</link>
+    </image>
+    <item>
+      <title>KFC #1: The Lies of Math (w/ Molly Conger)</title>
+      <itunes:title>KFC #1: The Lies of Math (w/ Molly Conger)</itunes:title>
+      <description><![CDATA[<p>In the first level of Knowledge Fight Country, Dan and his guest adventurer Molly Conger set out to understand the context around Tucker Carlson's interview with a welder who is mad about algebra.</p><p>See <a href="https://omnystudio.com/listener">omnystudio.com/listener</a> for privacy information.</p>]]></description>
+      <content:encoded><![CDATA[<p>In the first level of Knowledge Fight Country, Dan and his guest adventurer Molly Conger set out to understand the context around Tucker Carlson's interview with a welder who is mad about algebra.</p><p>See <a href="https://omnystudio.com/listener">omnystudio.com/listener</a> for privacy information.</p>]]></content:encoded>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:author>Cool Zone Media &amp;  iHeartPodcasts</itunes:author>
+      <itunes:image href="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/image.jpg?t=1791305771&amp;size=Large" />
+      <media:content url="https://podtrac.com/pts/redirect.mp3/traffic.omny.fm/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/9b5594f6-cfa6-4a27-a6a2-b4dd015806e3/audio.mp3?utm_source=Podcast&amp;in_playlist=756a2948-13e0-4c8b-ae8f-b4ba0139f9bf" type="audio/mpeg">
+        <media:player url="https://omny.fm/shows/knowledge-fight/kfc-1-the-lies-of-math-w-molly-conger/embed?media=Audio" />
+      </media:content>
+      <media:content url="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/image.jpg?t=1791305771&amp;size=Large" type="image/jpeg" />
+      <guid isPermaLink="false">9b5594f6-cfa6-4a27-a6a2-b4dd015806e3</guid>
+      <omny:clipId>9b5594f6-cfa6-4a27-a6a2-b4dd015806e3</omny:clipId>
+      <pubDate>Wed, 14 Oct 2026 04:01:00 +0000</pubDate>
+      <itunes:duration>8534</itunes:duration>
+      <enclosure url="https://podtrac.com/pts/redirect.mp3/traffic.omny.fm/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/9b5594f6-cfa6-4a27-a6a2-b4dd015806e3/audio.mp3?utm_source=Podcast&amp;in_playlist=756a2948-13e0-4c8b-ae8f-b4ba0139f9bf" length="136603236" type="audio/mpeg" />
+      <link>https://omny.fm/shows/knowledge-fight/kfc-1-the-lies-of-math-w-molly-conger</link>
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/9b5594f6-cfa6-4a27-a6a2-b4dd015806e3/transcript?format=SubRip&amp;t=1791920023" type="application/srt" language="en" />
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/9b5594f6-cfa6-4a27-a6a2-b4dd015806e3/transcript?format=WebVTT&amp;t=1791920023" type="text/vtt" language="en" />
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/9b5594f6-cfa6-4a27-a6a2-b4dd015806e3/transcript?format=TextWithTimestamps&amp;t=1791920023" type="text/plain" language="en" />
+    </item>
+    <item>
+      <title>Knowledge Fight Country: Double Trouble</title>
+      <itunes:title>Knowledge Fight Country: Double Trouble</itunes:title>
+      <description><![CDATA[<p>2016 was a pivotal year for Dan Friesen. It's the year he became fascinated with Alex Jones, and began watching the election of Donald J. Trump through the lens of Jones' show Info Wars. This obsession led to ten years of podcasting and a thousand episodes trying to answer one question: was Alex Jones as awful a person as he appeared if you actually watched his entire show? The answer was yes. In fact, Jones was worse than even the mainstream media painted him out to be. Now, Dan is expanding this quest to other right-wing media pundits, diving deep into their shows and taking their words at face value in an attempt to put them in their proper context.</p> <p>Welcome to Knowledge Fight Country.</p><p>See <a href="https://omnystudio.com/listener">omnystudio.com/listener</a> for privacy information.</p>]]></description>
+      <content:encoded><![CDATA[<p>2016 was a pivotal year for Dan Friesen. It's the year he became fascinated with Alex Jones, and began watching the election of Donald J. Trump through the lens of Jones' show Info Wars. This obsession led to ten years of podcasting and a thousand episodes trying to answer one question: was Alex Jones as awful a person as he appeared if you actually watched his entire show? The answer was yes. In fact, Jones was worse than even the mainstream media painted him out to be. Now, Dan is expanding this quest to other right-wing media pundits, diving deep into their shows and taking their words at face value in an attempt to put them in their proper context.</p> <p>Welcome to Knowledge Fight Country.</p><p>See <a href="https://omnystudio.com/listener">omnystudio.com/listener</a> for privacy information.</p>]]></content:encoded>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:author>Cool Zone Media &amp;  iHeartPodcasts</itunes:author>
+      <itunes:image href="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/image.jpg?t=1791305771&amp;size=Large" />
+      <media:content url="https://podtrac.com/pts/redirect.mp3/traffic.omny.fm/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/9e9158dc-dc97-4d76-9d03-b4db016eda45/audio.mp3?utm_source=Podcast&amp;in_playlist=756a2948-13e0-4c8b-ae8f-b4ba0139f9bf" type="audio/mpeg">
+        <media:player url="https://omny.fm/shows/knowledge-fight/knowledge-fight-country-double-trouble/embed?media=Audio" />
+      </media:content>
+      <media:content url="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/756a2948-13e0-4c8b-ae8f-b4ba0139f9bf/image.jpg?t=1791305771&amp;size=Large" type="image/jpeg" />
+      <guid isPermaLink="false">9e9158dc-dc97-4d76-9d03-b4db016eda45</guid>
+      <omny:clipId>9e9158dc-dc97-4d76-9d03-b4db016eda45</omny:clipId>
+      <pubDate>Wed, 14 Oct 2026 04:00:00 +0000</pubDate>
+      <itunes:duration>593</itunes:duration>
+      <enclosure url="https://podtrac.com/pts/redirect.mp3/traffic.omny.fm/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/9e9158dc-dc97-4d76-9d03-b4db016eda45/audio.mp3?utm_source=Podcast&amp;in_playlist=756a2948-13e0-4c8b-ae8f-b4ba0139f9bf" length="9557188" type="audio/mpeg" />
+      <link>https://omny.fm/shows/knowledge-fight/knowledge-fight-country-double-trouble</link>
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/9e9158dc-dc97-4d76-9d03-b4db016eda45/transcript?format=SubRip&amp;t=1791492805" type="application/srt" language="en" />
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/9e9158dc-dc97-4d76-9d03-b4db016eda45/transcript?format=WebVTT&amp;t=1791492805" type="text/vtt" language="en" />
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/9e9158dc-dc97-4d76-9d03-b4db016eda45/transcript?format=TextWithTimestamps&amp;t=1791492805" type="text/plain" language="en" />
+    </item>
+    <item>
+      <title>Introducing Knowledge Fight Country</title>
+      <itunes:title>Introducing Knowledge Fight Country</itunes:title>
+      <description><![CDATA[<p>Knowledge Fight Country is a platform where Dan Friesen and his guests can chew over the biggest and best ideas being disseminated in right wing media. Through a focus on Alex Jones and figures similar to him, this show will provide a humorous and fun layer on top of discussing the context on why liars lie and how they do it.</p><p>See <a href="https://omnystudio.com/listener">omnystudio.com/listener</a> for privacy information.</p>]]></description>
+      <content:encoded><![CDATA[<p>Knowledge Fight Country is a platform where Dan Friesen and his guests can chew over the biggest and best ideas being disseminated in right wing media. Through a focus on Alex Jones and figures similar to him, this show will provide a humorous and fun layer on top of discussing the context on why liars lie and how they do it.</p><p>See <a href="https://omnystudio.com/listener">omnystudio.com/listener</a> for privacy information.</p>]]></content:encoded>
+      <itunes:episodeType>trailer</itunes:episodeType>
+      <itunes:author>Cool Zone Media &amp;  iHeartPodcasts</itunes:author>
+      <itunes:image href="https://www.omnycontent.com/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/fa73daa8-2ae2-4d1b-aa45-b4db0110cd36/image.jpg?t=1791305051&amp;size=Large" />
+      <media:content url="https://podtrac.com/pts/redirect.mp3/traffic.omny.fm/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/fa73daa8-2ae2-4d1b-aa45-b4db0110cd36/audio.mp3?utm_source=Podcast&amp;in_playlist=756a2948-13e0-4c8b-ae8f-b4ba0139f9bf" type="audio/mpeg">
+        <media:player url="https://omny.fm/shows/knowledge-fight/introducing-knowledge-fight-country/embed?media=Audio" />
+      </media:content>
+      <media:content url="https://www.omnycontent.com/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/fa73daa8-2ae2-4d1b-aa45-b4db0110cd36/image.jpg?t=1791305051&amp;size=Large" type="image/jpeg" />
+      <guid isPermaLink="false">fa73daa8-2ae2-4d1b-aa45-b4db0110cd36</guid>
+      <omny:clipId>fa73daa8-2ae2-4d1b-aa45-b4db0110cd36</omny:clipId>
+      <pubDate>Wed, 07 Oct 2026 04:00:00 +0000</pubDate>
+      <itunes:duration>207</itunes:duration>
+      <enclosure url="https://podtrac.com/pts/redirect.mp3/traffic.omny.fm/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/fa73daa8-2ae2-4d1b-aa45-b4db0110cd36/audio.mp3?utm_source=Podcast&amp;in_playlist=756a2948-13e0-4c8b-ae8f-b4ba0139f9bf" length="3371694" type="audio/mpeg" />
+      <link>https://omny.fm/shows/knowledge-fight/introducing-knowledge-fight-country</link>
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/fa73daa8-2ae2-4d1b-aa45-b4db0110cd36/transcript?format=SubRip&amp;t=1791305302" type="application/srt" language="en" />
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/fa73daa8-2ae2-4d1b-aa45-b4db0110cd36/transcript?format=WebVTT&amp;t=1791305302" type="text/vtt" language="en" />
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/fa73daa8-2ae2-4d1b-aa45-b4db0110cd36/transcript?format=TextWithTimestamps&amp;t=1791305302" type="text/plain" language="en" />
+    </item>
+    <item>
+      <title>Show Me State Of Mind Begins!</title>
+      <itunes:title>Show Me State Of Mind Begins!</itunes:title>
+      <description><![CDATA[<p>Hello wonks. Dan here, swinging in to hijack the feed to drop the first episode of my new podcast Show Me State Of Mind. I'm posting the debut here, but to catch episodes in the future, <a href="https://sites.libsyn.com/618415/">you can find them at this link</a>. I hope you enjoy the show!</p><p>See <a href="https://omnystudio.com/listener">omnystudio.com/listener</a> for privacy information.</p>]]></description>
+      <content:encoded><![CDATA[<p>Hello wonks. Dan here, swinging in to hijack the feed to drop the first episode of my new podcast Show Me State Of Mind. I'm posting the debut here, but to catch episodes in the future, <a href="https://sites.libsyn.com/618415/">you can find them at this link</a>. I hope you enjoy the show!</p><p>See <a href="https://omnystudio.com/listener">omnystudio.com/listener</a> for privacy information.</p>]]></content:encoded>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:author>Cool Zone Media &amp;  iHeartPodcasts</itunes:author>
+      <itunes:image href="https://www.omnycontent.com/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/31e4bc4a-9164-43de-8549-b4ba013a2e9c/image.jpg?t=1788462246&amp;size=Large" />
+      <media:content url="https://podtrac.com/pts/redirect.mp3/traffic.omny.fm/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/31e4bc4a-9164-43de-8549-b4ba013a2e9c/audio.mp3?utm_source=Podcast&amp;in_playlist=756a2948-13e0-4c8b-ae8f-b4ba0139f9bf" type="audio/mpeg">
+        <media:player url="https://omny.fm/shows/knowledge-fight/show-me-state-of-mind-begins/embed?media=Audio" />
+      </media:content>
+      <media:content url="https://www.omnycontent.com/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/31e4bc4a-9164-43de-8549-b4ba013a2e9c/image.jpg?t=1788462246&amp;size=Large" type="image/jpeg" />
+      <guid isPermaLink="false">a171106f-ed2b-4188-b01f-c3cebffe6df9</guid>
+      <omny:clipId>31e4bc4a-9164-43de-8549-b4ba013a2e9c</omny:clipId>
+      <pubDate>Fri, 03 Jul 2026 14:54:00 +0000</pubDate>
+      <itunes:duration>3656</itunes:duration>
+      <enclosure url="https://podtrac.com/pts/redirect.mp3/traffic.omny.fm/d/clips/e73c998e-6e60-432f-8610-ae210140c5b1/79e9a3f8-e7fd-4b7b-ad5c-b4ba0139f9ae/31e4bc4a-9164-43de-8549-b4ba013a2e9c/audio.mp3?utm_source=Podcast&amp;in_playlist=756a2948-13e0-4c8b-ae8f-b4ba0139f9bf" length="58556776" type="audio/mpeg" />
+      <link>https://omny.fm/shows/knowledge-fight/show-me-state-of-mind-begins</link>
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/31e4bc4a-9164-43de-8549-b4ba013a2e9c/transcript?format=SubRip&amp;t=1788462616" type="application/srt" language="en" />
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/31e4bc4a-9164-43de-8549-b4ba013a2e9c/transcript?format=WebVTT&amp;t=1788462616" type="text/vtt" language="en" />
+      <podcast:transcript url="https://api.omny.fm/orgs/e73c998e-6e60-432f-8610-ae210140c5b1/clips/31e4bc4a-9164-43de-8549-b4ba013a2e9c/transcript?format=TextWithTimestamps&amp;t=1788462616" type="text/plain" language="en" />
+    </item>
+  </channel>
+</rss>

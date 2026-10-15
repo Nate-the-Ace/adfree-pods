@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adfree Pods</title>
+  <style>
+    :root { --bg:#fff; --fg:#1b1b1f; --mute:#6b6b76; --line:#e2e2e8; --ok:#1a7f37; --bad:#b42318; --unk:#6b6b76; --card:#f6f6f9; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#16161a; --fg:#ececf1; --mute:#9a9aa6; --line:#2c2c34; --ok:#4ade80; --bad:#f87171; --unk:#9a9aa6; --card:#1f1f25; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, sans-serif; }
+    main { max-width:760px; margin:0 auto; padding:16px 16px 140px; }
+    h1 { font-size:1.3rem; margin:8px 0 16px; }
+    form { display:flex; gap:8px; margin-bottom:16px; }
+    input[type=url] { flex:1; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); min-width:0; }
+    button { padding:10px 14px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); cursor:pointer; }
+    select { padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); width:100%; margin-bottom:12px; }
+    ul { list-style:none; margin:0; padding:0; }
+    li { display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--line); }
+    li .t { flex:1; min-width:0; }
+    li .t b { display:block; overflow:hidden; text-overflow:ellipsis; }
+    li small { color:var(--mute); }
+    .badge { font-size:.75rem; padding:2px 8px; border-radius:99px; border:1px solid currentColor; white-space:nowrap; }
+    .clean { color:var(--ok); } .suspected { color:var(--bad); } .unknown { color:var(--unk); }
+    footer { position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); padding:10px 16px; }
+    footer .in { max-width:760px; margin:0 auto; }
+    audio { width:100%; }
+    #msg { color:var(--bad); min-height:1.2em; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Adfree Pods</h1>
+  <form id="add">
+    <input type="url" id="feedUrl" placeholder="Podcast RSS feed URL" required>
+    <button>Add</button>
+  </form>
+  <div id="msg" role="status"></div>
+  <select id="feeds" aria-label="Feed"></select>
+  <ul id="eps"></ul>
+</main>
+<footer>
+  <div class="in">
+    <div id="now"><small>Nothing playing</small></div>
+    <audio id="player" controls preload="metadata"></audio>
+  </div>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
