@@ -276,6 +276,45 @@ async function userFeeds(req: Request, url: URL, env: Env, user: string, c: Cors
   return json(405, { error: 'method not allowed' }, c);
 }
 
+// Newest episode date per feed, for ordering the show tiles. Reads only the start of each
+// feed (enough for the first item) and caches the answer for 15 minutes.
+async function newestEpisode(feedUrl: string): Promise<number | null> {
+  const key = new Request('https://latest.cache.invalid/' + encodeURIComponent(feedUrl));
+  const hit = await caches.default.match(key);
+  if (hit) return (await hit.json<{ t: number | null }>()).t;
+  let t: number | null = null;
+  try {
+    const up = await fetch(feedUrl, { headers: { ...strategyFor(feedUrl).headers, accept: 'application/rss+xml, application/xml, text/xml' }, redirect: 'follow' });
+    if (up.ok && up.body) {
+      const reader = up.body.getReader();
+      const dec = new TextDecoder();
+      let text = '';
+      while (text.length < 400_000) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += dec.decode(value, { stream: true });
+        const first = text.indexOf('<item');
+        if (first >= 0 && text.indexOf('</item>', first) >= 0) break;
+      }
+      await reader.cancel();
+      const first = text.indexOf('<item');
+      const m = first >= 0 ? text.slice(first).match(/<pubDate>\s*([^<]+?)\s*<\/pubDate>/) : null;
+      const parsed = m ? Date.parse(m[1]) : NaN;
+      t = Number.isFinite(parsed) ? parsed : null;
+    }
+  } catch {
+    t = null;
+  }
+  await caches.default.put(key, new Response(JSON.stringify({ t }), { headers: { 'cache-control': `max-age=${t === null ? 120 : 900}` } }));
+  return t;
+}
+
+async function latest(url: URL, c: Cors): Promise<Response> {
+  const urls = url.searchParams.getAll('url').filter((u) => /^https?:\/\//.test(u)).slice(0, 40);
+  const times = await Promise.all(urls.map(newestEpisode));
+  return json(200, Object.fromEntries(urls.map((u, i) => [u, times[i]])), c);
+}
+
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null);
 
 async function progress(req: Request, env: Env, user: string, c: Cors): Promise<Response> {
@@ -319,6 +358,7 @@ export default {
 
     if (url.pathname === '/me') return json(200, { user: me.name, admin: me.admin }, c);
     if (url.pathname === '/progress') return progress(req, env, me.name, c);
+    if (url.pathname === '/latest') return latest(url, c);
     if (url.pathname === '/feeds') return userFeeds(req, url, env, me.name, c);
     if (url.pathname.startsWith('/account/')) return account(req, url, env, me, c);
     if (url.pathname.startsWith('/admin/')) return admin(req, url, env, me, c);

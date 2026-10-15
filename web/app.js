@@ -19,7 +19,12 @@ let prog = new Map(); // guid -> progress row from the server
 let episodes = []; // open show's episodes, newest first
 let openFeed = null; // url of the show whose drawer is open
 let userFeeds = []; // this account's private feeds, from the server
-const shows = () => [...FEEDS, ...userFeeds];
+let latestAt = load('adfree.latest', {}); // feed url -> ms of its newest episode
+// Most recently updated show first; shows with no known date keep their listed order at the end.
+const shows = () => [...FEEDS, ...userFeeds]
+  .map((f, i) => ({ f, i }))
+  .sort((a, b) => (latestAt[b.f.url] ?? -1) - (latestAt[a.f.url] ?? -1) || a.i - b.i)
+  .map((x) => x.f);
 let shown = PAGE;
 let current = null; // episode being played
 let lastSave = 0;
@@ -141,8 +146,29 @@ function renderResume() {
 function renderGrid() {
   for (const t of $('grid').querySelectorAll('.tile')) t.remove();
   $('grid').insertAdjacentHTML('afterbegin', shows().map((f) => `<button class="tile${f.art ? '' : ' noart'}" role="listitem" data-url="${esc(f.url)}" aria-label="${esc(f.name)}">
-    ${f.art ? `<img src="${esc(f.art)}" alt="" loading="lazy">` : ''}<span class="label">${esc(f.name)}</span></button>`).join(''));
-  if (openFeed) for (const t of $('grid').querySelectorAll('.tile')) t.classList.toggle('active', t.dataset.url === openFeed);
+    ${f.art ? `<img src="${esc(f.art)}" alt="" loading="lazy">` : ''}<span class="label">${esc(f.name)}${latestAt[f.url] ? `<small>${ago(latestAt[f.url])}</small>` : ''}</span></button>`).join(''));
+  if (openFeed) {
+    for (const t of $('grid').querySelectorAll('.tile')) t.classList.toggle('active', t.dataset.url === openFeed);
+    placeDrawer();
+  }
+}
+
+function ago(ms) {
+  const d = Math.floor((Date.now() - ms) / 86_400_000);
+  return d <= 0 ? 'today' : d === 1 ? 'yesterday' : d < 30 ? `${d}d ago` : new Date(ms).toLocaleDateString(undefined, d < 300 ? { month: 'short', day: 'numeric' } : { month: 'short', year: 'numeric' });
+}
+
+// Ask the worker for each show's newest episode date, then re-sort the tiles.
+async function refreshLatest() {
+  try {
+    const urls = shows().map((f) => f.url);
+    const got = await apiJson('/latest?' + urls.map((u) => 'url=' + encodeURIComponent(u)).join('&'));
+    for (const [u, t] of Object.entries(got)) if (t) latestAt[u] = t;
+    store('adfree.latest', latestAt);
+    renderGrid();
+  } catch (err) {
+    if (!(err instanceof AuthError)) console.warn('latest failed', err);
+  }
 }
 
 // Put the drawer right after the last tile of the selected tile's row, so rows below get pushed down.
@@ -321,7 +347,7 @@ function start() {
   for (const r of load('adfree.prog.' + session.user, [])) prog.set(r.guid, r);
   renderGrid();
   renderResume();
-  apiJson('/feeds').then((rows) => { userFeeds = rows; renderGrid(); }).catch(() => {});
+  apiJson('/feeds').then((rows) => { userFeeds = rows; renderGrid(); }).catch(() => {}).then(refreshLatest);
   apiJson('/me').then((m) => { session.admin = m.admin; store('adfree.session', session); }).catch(() => {});
   refreshProgress().catch((err) => { if (!(err instanceof AuthError)) say(`Could not sync progress: ${err.message}`); });
 }
@@ -363,6 +389,7 @@ async function loadAdmin() {
 async function loadPrivate() {
   try {
     userFeeds = await apiJson('/feeds');
+    refreshLatest();
     $('privList').innerHTML = userFeeds.map((f) => `<li><div class="t"><b>${esc(f.name)}</b></div><button data-rmfeed="${f.id}">Remove</button></li>`).join('')
       || '<li><small>None yet.</small></li>';
     renderGrid();
