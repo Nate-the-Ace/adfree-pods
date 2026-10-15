@@ -161,8 +161,9 @@ function ago(ms) {
 // Ask the worker for each show's newest episode date, then re-sort the tiles.
 async function refreshLatest() {
   try {
-    const urls = shows().map((f) => f.url);
-    const got = await apiJson('/latest?' + urls.map((u) => 'url=' + encodeURIComponent(u)).join('&'));
+    const q = new URLSearchParams();
+    for (const f of shows()) { q.append('url', f.url); q.append('hide', f.hide?.source ?? ''); }
+    const got = await apiJson('/latest?' + q);
     for (const [u, t] of Object.entries(got)) if (t) latestAt[u] = t;
     store('adfree.latest', latestAt);
     renderGrid();

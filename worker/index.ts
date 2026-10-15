@@ -277,11 +277,27 @@ async function userFeeds(req: Request, url: URL, env: Env, user: string, c: Cors
 }
 
 // Newest episode date per feed, for ordering the show tiles. Reads only the start of each
-// feed (enough for the first item) and caches the answer for 15 minutes.
-async function newestEpisode(feedUrl: string): Promise<number | null> {
-  const key = new Request('https://latest.cache.invalid/' + encodeURIComponent(feedUrl));
+// feed (enough for the first wanted item) and caches the answer for 15 minutes. `hide` is a
+// title pattern for episodes that should not count (e.g. paywall teasers).
+async function newestEpisode(feedUrl: string, hideSrc: string): Promise<number | null> {
+  const key = new Request('https://latest.cache.invalid/' + encodeURIComponent(feedUrl) + '|' + encodeURIComponent(hideSrc));
   const hit = await caches.default.match(key);
   if (hit) return (await hit.json<{ t: number | null }>()).t;
+  let hide: RegExp | null = null;
+  try {
+    hide = hideSrc && hideSrc.length <= 120 ? new RegExp(hideSrc, 'i') : null;
+  } catch {
+    hide = null;
+  }
+  const wanted = (xml: string): number | null => {
+    for (const m of xml.matchAll(/<item[\s>][\s\S]*?<\/item>/g)) {
+      const title = m[0].match(/<title>\s*(?:<!\[CDATA\[)?([^<\]]*)/)?.[1]?.trim() ?? '';
+      if (hide?.test(title)) continue;
+      const d = Date.parse(m[0].match(/<pubDate>\s*([^<]+?)\s*<\/pubDate>/)?.[1] ?? '');
+      if (Number.isFinite(d)) return d;
+    }
+    return null;
+  };
   let t: number | null = null;
   try {
     const up = await fetch(feedUrl, { headers: { ...strategyFor(feedUrl).headers, accept: 'application/rss+xml, application/xml, text/xml' }, redirect: 'follow' });
@@ -289,18 +305,13 @@ async function newestEpisode(feedUrl: string): Promise<number | null> {
       const reader = up.body.getReader();
       const dec = new TextDecoder();
       let text = '';
-      while (text.length < 400_000) {
+      while (text.length < 600_000 && t === null) {
         const { done, value } = await reader.read();
         if (done) break;
         text += dec.decode(value, { stream: true });
-        const first = text.indexOf('<item');
-        if (first >= 0 && text.indexOf('</item>', first) >= 0) break;
+        t = wanted(text);
       }
       await reader.cancel();
-      const first = text.indexOf('<item');
-      const m = first >= 0 ? text.slice(first).match(/<pubDate>\s*([^<]+?)\s*<\/pubDate>/) : null;
-      const parsed = m ? Date.parse(m[1]) : NaN;
-      t = Number.isFinite(parsed) ? parsed : null;
     }
   } catch {
     t = null;
@@ -309,10 +320,13 @@ async function newestEpisode(feedUrl: string): Promise<number | null> {
   return t;
 }
 
+// Repeated url= params, with hide= params in the same order ("" for none).
 async function latest(url: URL, c: Cors): Promise<Response> {
-  const urls = url.searchParams.getAll('url').filter((u) => /^https?:\/\//.test(u)).slice(0, 40);
-  const times = await Promise.all(urls.map(newestEpisode));
-  return json(200, Object.fromEntries(urls.map((u, i) => [u, times[i]])), c);
+  const urls = url.searchParams.getAll('url');
+  const hides = url.searchParams.getAll('hide');
+  const ok = urls.map((u, i) => ({ u, h: hides[i] ?? '' })).filter((x) => /^https?:\/\//.test(x.u)).slice(0, 40);
+  const times = await Promise.all(ok.map((x) => newestEpisode(x.u, x.h)));
+  return json(200, Object.fromEntries(ok.map((x, i) => [x.u, times[i]])), c);
 }
 
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null);
