@@ -16,7 +16,8 @@ function store(key, v) {
 
 let session = load('adfree.session', null); // { token, user }
 let prog = new Map(); // guid -> progress row from the server
-let episodes = []; // current feed, newest first
+let episodes = []; // open show's episodes, newest first
+let openFeed = null; // url of the show whose drawer is open
 let shown = PAGE;
 let current = null; // episode being played
 let lastSave = 0;
@@ -134,9 +135,26 @@ function renderResume() {
       <button data-resume="${i}">Resume</button></li>`).join('');
 }
 
+// ---- shows ----
+function renderGrid() {
+  $('grid').innerHTML = FEEDS.map((f) => `<button class="tile" role="listitem" data-url="${esc(f.url)}" aria-label="${esc(f.name)}">
+    <img src="${esc(f.art)}" alt="" loading="lazy"><span class="label">${esc(f.name)}</span></button>`).join('');
+}
+
+// Open a show's drawer (or close it with null). Other tiles grey out while it is open.
+function openShow(url) {
+  openFeed = url;
+  $('grid').classList.toggle('open', !!url);
+  $('drawer').classList.toggle('open', !!url);
+  for (const t of $('grid').children) t.classList.toggle('active', t.dataset.url === url);
+  if (!url) return;
+  $('drawerTitle').textContent = FEEDS.find((f) => f.url === url).name;
+  loadFeed(url);
+  $('drawer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 // ---- feeds ----
-async function loadFeed() {
-  const url = $('feeds').value;
+async function loadFeed(url) {
   shown = PAGE;
   const cached = load('adfree.ep.' + url, null);
   episodes = cached ?? [];
@@ -146,7 +164,7 @@ async function loadFeed() {
     const r = await api('/feed?' + new URLSearchParams({ url }));
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
     const parsed = parseFeed(await r.text());
-    if ($('feeds').value !== url) return; // switched shows meanwhile
+    if (openFeed !== url) return; // switched or closed meanwhile
     episodes = parsed.episodes.map((e) => ({ ...e, feed: url }));
     store('adfree.ep.' + url, episodes.slice(0, 120));
     say('');
@@ -215,7 +233,11 @@ $('resumeList').addEventListener('click', (e) => {
   const r = prog.get(JSON.parse($('resumeList').dataset.guids)[Number(e.target.dataset.resume)]);
   if (r) play(fromRow(r));
 });
-$('feeds').addEventListener('change', loadFeed);
+$('grid').addEventListener('click', (e) => {
+  const tile = e.target.closest('.tile');
+  if (tile) openShow(tile.dataset.url === openFeed ? null : tile.dataset.url);
+});
+$('drawerClose').addEventListener('click', () => openShow(null));
 
 // ---- sign in ----
 let registering = false;
@@ -262,9 +284,8 @@ function start() {
   showLogin(false);
   $('who').textContent = session.user;
   for (const r of load('adfree.prog.' + session.user, [])) prog.set(r.guid, r);
-  $('feeds').innerHTML = FEEDS.map((f) => `<option value="${esc(f.url)}">${esc(f.name)}</option>`).join('');
+  renderGrid();
   renderResume();
-  loadFeed();
   refreshProgress().catch((err) => { if (!(err instanceof AuthError)) say(`Could not sync progress: ${err.message}`); });
 }
 

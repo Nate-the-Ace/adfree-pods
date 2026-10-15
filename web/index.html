@@ -3,42 +3,77 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101014">
   <title>Adfree Pods</title>
   <style>
-    :root { --bg:#fff; --fg:#1b1b1f; --mute:#6b6b76; --line:#e2e2e8; --ok:#1a7f37; --bad:#b42318; --unk:#6b6b76; --card:#f6f6f9; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg:#16161a; --fg:#ececf1; --mute:#9a9aa6; --line:#2c2c34; --ok:#4ade80; --bad:#f87171; --unk:#9a9aa6; --card:#1f1f25; }
+    :root {
+      --bg:#fff; --fg:#1b1b1f; --mute:#6b6b76; --line:#e2e2e8; --card:#f3f3f7; --raise:#fff;
+      --ok:#1a7f37; --bad:#b42318; --unk:#6b6b76; --accent:#5b4bdb; --shadow:rgba(20,20,40,.18);
     }
-    * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, sans-serif; }
-    main { max-width:760px; margin:0 auto; padding:16px 16px 140px; }
-    h1 { font-size:1.3rem; margin:8px 0 16px; }
-    form { display:flex; gap:8px; margin-bottom:16px; }
-    input[type=url] { flex:1; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); min-width:0; }
-    button { padding:10px 14px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); cursor:pointer; }
-    select { padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); width:100%; margin-bottom:12px; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#101014; --fg:#ececf1; --mute:#9a9aa6; --line:#2a2a33; --card:#1a1a21; --raise:#16161c;
+        --ok:#4ade80; --bad:#f87171; --unk:#9a9aa6; --accent:#8b7dff; --shadow:rgba(0,0,0,.6);
+      }
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, -apple-system, sans-serif; }
+    main { max-width:760px; margin:0 auto; padding:16px 16px 150px; }
+    header { display:flex; align-items:baseline; gap:10px; margin:6px 0 16px; }
+    h1 { font-size:1.35rem; margin:0; letter-spacing:-.01em; }
+    #who { color:var(--mute); font-size:.85rem; flex:1; }
+    h2 { font-size:.8rem; margin:18px 0 6px; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); }
+    button { padding:9px 13px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--fg); cursor:pointer; font:inherit; font-size:.9rem; }
+    button:hover { border-color:var(--accent); }
     ul { list-style:none; margin:0; padding:0; }
+    #msg { color:var(--bad); min-height:1.2em; font-size:.9rem; }
+
+    /* Poster grid. Sits above the drawer so the drawer appears to slide out from under it. */
+    #grid { position:relative; z-index:2; display:grid; grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:14px; padding:6px 0 14px; background:var(--bg); }
+    .tile { position:relative; padding:0; border:0; background:none; aspect-ratio:1; border-radius:16px; overflow:hidden;
+            transition:filter .35s, opacity .35s, transform .2s, box-shadow .35s; box-shadow:0 2px 10px var(--shadow); }
+    .tile img { width:100%; height:100%; display:block; object-fit:cover; }
+    .tile:hover { transform:translateY(-2px); }
+    .tile .label { position:absolute; left:0; right:0; bottom:0; padding:18px 8px 6px; font-size:.7rem; line-height:1.2; text-align:left; color:#fff;
+                   background:linear-gradient(transparent, rgba(0,0,0,.75)); }
+    #grid.open .tile:not(.active) { filter:grayscale(1) brightness(.6); opacity:.55; }
+    .tile.active { box-shadow:0 0 0 3px var(--accent), 0 6px 20px var(--shadow); }
+
+    /* Drawer: grid-rows 0fr -> 1fr animates height; inner slides down from beneath the grid. */
+    #drawer { position:relative; z-index:1; display:grid; grid-template-rows:0fr; transition:grid-template-rows .4s cubic-bezier(.2,.8,.2,1); }
+    #drawer.open { grid-template-rows:1fr; }
+    #drawer > .clip { overflow:hidden; min-height:0; }
+    #drawer .inner { transform:translateY(-40px); opacity:0; transition:transform .4s cubic-bezier(.2,.8,.2,1), opacity .3s;
+                     background:var(--raise); border:1px solid var(--line); border-top:0; border-radius:0 0 16px 16px; padding:6px 14px 10px;
+                     box-shadow:inset 0 14px 14px -14px var(--shadow); }
+    #drawer.open .inner { transform:none; opacity:1; }
+    .dhead { display:flex; align-items:center; gap:10px; padding:10px 0 4px; }
+    .dhead b { flex:1; font-size:1.05rem; }
+    .dhead button { padding:4px 10px; }
+
     li { display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--line); }
+    li:last-child { border-bottom:0; }
     li .t { flex:1; min-width:0; }
-    li .t b { display:block; overflow:hidden; text-overflow:ellipsis; }
+    li .t b { display:block; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
     li small { color:var(--mute); }
-    .badge { font-size:.75rem; padding:2px 8px; border-radius:99px; border:1px solid currentColor; white-space:nowrap; }
+    li.done .t b { color:var(--mute); font-weight:500; }
+    .bar { height:4px; background:var(--line); border-radius:2px; margin-top:6px; }
+    .bar i { display:block; height:100%; background:var(--accent); border-radius:2px; }
+    .badge { font-size:.7rem; padding:2px 8px; border-radius:99px; border:1px solid currentColor; white-space:nowrap; }
     .clean { color:var(--ok); } .suspected { color:var(--bad); } .unknown { color:var(--unk); }
-    footer { position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); padding:10px 16px; }
+
+    footer { position:fixed; left:0; right:0; bottom:0; z-index:5; background:var(--card); border-top:1px solid var(--line); padding:10px 16px calc(10px + env(safe-area-inset-bottom)); }
     footer .in { max-width:760px; margin:0 auto; }
     audio { width:100%; }
-    h1 small { font-size:.8rem; color:var(--mute); font-weight:400; }
-    h1 button { font-size:.75rem; padding:4px 8px; float:right; }
-    h2 { font-size:1rem; margin:16px 0 4px; }
-    .bar { height:4px; background:var(--line); border-radius:2px; margin-top:6px; }
-    .bar i { display:block; height:100%; background:var(--ok); border-radius:2px; }
-    li.done .t b { color:var(--mute); }
-    #login[hidden] { display:none; }
+
     #login { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:10; }
-    #loginForm { flex-direction:column; width:min(340px, 90vw); align-items:stretch; }
-    #loginForm input { padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); }
-    #loginMsg { color:var(--bad); min-height:1.2em; }
-    #msg { color:var(--bad); min-height:1.2em; }
+    #login[hidden] { display:none; }
+    #loginForm { display:flex; flex-direction:column; gap:10px; width:min(340px, 90vw); }
+    #loginForm h2 { margin:0 0 4px; font-size:1.3rem; text-transform:none; letter-spacing:0; color:var(--fg); }
+    #loginForm input { padding:11px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--fg); font:inherit; }
+    #loginForm a { color:var(--accent); font-size:.9rem; }
+    #loginMsg { color:var(--bad); min-height:1.2em; font-size:.9rem; }
+    @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
   </style>
 </head>
 <body>
@@ -54,14 +89,26 @@
   </form>
 </div>
 <main>
-  <h1>Adfree Pods <small id="who"></small> <button id="logout" hidden>Sign out</button></h1>
+  <header>
+    <h1>Adfree Pods</h1>
+    <span id="who"></span>
+    <button id="logout" hidden>Sign out</button>
+  </header>
   <div id="msg" role="status"></div>
   <section id="resume" hidden>
     <h2>Continue listening</h2>
     <ul id="resumeList"></ul>
   </section>
-  <select id="feeds" aria-label="Feed"></select>
-  <ul id="eps"></ul>
+  <h2>Shows</h2>
+  <div id="grid" role="list"></div>
+  <div id="drawer" aria-live="polite">
+    <div class="clip">
+      <div class="inner">
+        <div class="dhead"><b id="drawerTitle"></b><button id="drawerClose">Close</button></div>
+        <ul id="eps"></ul>
+      </div>
+    </div>
+  </div>
 </main>
 <footer>
   <div class="in">
