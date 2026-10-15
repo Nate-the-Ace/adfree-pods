@@ -1,4 +1,4 @@
-# adfree-pods
+# czm-direct
 
 Single-user podcast aggregator that plays episodes without server-inserted ads. Read `HANDOFF.md` first; the design is in `docs/superpowers/specs/`, tasks in `docs/superpowers/plans/`.
 

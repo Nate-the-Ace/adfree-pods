@@ -1,4 +1,4 @@
-# Handoff: adfree-pods
+# Handoff: czm-direct
 
 Written 2026-10-15 for continuing on another machine / another Claude account. Everything needed is in this folder; nothing depends on the machine it was built on.
 

@@ -1,10 +1,15 @@
-# adfree-pods
+# czm-direct
 
 Single-user podcast aggregator that plays episodes without server-inserted ads. First target: Knowledge Fight Country.
 
 Design: `docs/superpowers/specs/2026-10-14-adfree-podcast-aggregator-design.md`. Remaining work: `docs/superpowers/plans/2026-10-14-adfree-podcast-aggregator.md`.
 
-## Run
+## Hosted version
+
+`web/` is a standalone page published on GitHub Pages: https://nate-the-ace.github.io/czm-direct/
+`worker/` is the Cloudflare Worker behind it (feed and audio proxy, accounts, listening progress in D1). Deploy with `cd worker && npx wrangler deploy`; the `ACCESS_KEY` secret is the invite code for creating accounts.
+
+## Run (local app)
 
 Needs Node 24+ (native TypeScript, `node:sqlite`). One dependency.
 

@@ -97,5 +97,5 @@ export function createApp(dbPath = process.env.DB_PATH ?? 'data.sqlite') {
 // Run directly: `npm start`. Bound to localhost only; there is no auth.
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const port = Number(process.env.PORT ?? 8787);
-  createApp().listen(port, '127.0.0.1', () => console.log(`adfree-pods on http://127.0.0.1:${port}`));
+  createApp().listen(port, '127.0.0.1', () => console.log(`czm-direct on http://127.0.0.1:${port}`));
 }
