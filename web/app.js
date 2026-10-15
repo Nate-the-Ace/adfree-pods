@@ -273,7 +273,7 @@ $('drawerClose').addEventListener('click', () => openShow(null));
 
 // ---- sign in ----
 let registering = false;
-function showLogin(on) { $('login').hidden = !on; $('logout').hidden = on; }
+function showLogin(on) { $('login').hidden = !on; $('settingsBtn').hidden = on; }
 function setMode(reg) {
   registering = reg;
   $('loginTitle').textContent = reg ? 'Create account' : 'Sign in';
@@ -291,7 +291,7 @@ $('loginForm').addEventListener('submit', async (e) => {
     const out = await apiJson(registering ? '/auth/register' : '/auth/login', {
       method: 'POST', body: { user: $('user').value, password: $('pass').value, invite: $('invite').value },
     });
-    session = { token: out.token, user: out.user };
+    session = { token: out.token, user: out.user, admin: !!out.admin };
     store('adfree.session', session);
     $('pass').value = ''; $('invite').value = '';
     start();
@@ -310,7 +310,6 @@ function signOut() {
   renderResume();
   showLogin(true);
 }
-$('logout').addEventListener('click', signOut);
 
 function start() {
   showLogin(false);
@@ -318,8 +317,102 @@ function start() {
   for (const r of load('adfree.prog.' + session.user, [])) prog.set(r.guid, r);
   renderGrid();
   renderResume();
+  apiJson('/me').then((m) => { session.admin = m.admin; store('adfree.session', session); }).catch(() => {});
   refreshProgress().catch((err) => { if (!(err instanceof AuthError)) say(`Could not sync progress: ${err.message}`); });
 }
 
+// ---- settings / admin ----
+const when = (ms) => new Date(ms).toLocaleDateString();
+const inviteLink = (code) => `${location.origin}${location.pathname}#invite=${code}`;
+const flash = (id, text) => { $(id).textContent = text || ''; };
+let lastInvite = '';
+
+function openPanel() {
+  $('panel').hidden = false;
+  $('acctName').textContent = `Signed in as ${session.user}${session.admin ? ' (admin)' : ''}`;
+  for (const id of ['pwCur', 'pwNew', 'delPw']) $(id).value = '';
+  flash('acctMsg', ''); flash('adminMsg', '');
+  $('newInvite').hidden = true;
+  $('adminSec').hidden = !session.admin;
+  if (session.admin) loadAdmin();
+}
+function closePanel() { $('panel').hidden = true; }
+
+async function loadAdmin() {
+  try {
+    const [invites, users] = await Promise.all([apiJson('/admin/invites'), apiJson('/admin/users')]);
+    $('inviteList').innerHTML = invites.map((i) => {
+      const active = !i.used_by && !i.revoked && i.expires > Date.now();
+      const state = i.used_by ? `used by ${esc(i.used_by)}` : i.revoked ? 'revoked' : i.expires <= Date.now() ? 'expired' : `expires ${when(i.expires)}`;
+      return `<li><div class="t"><b>${esc(i.code)}</b><small>${esc(i.note || 'no note')} · ${state}</small></div>
+        ${active ? `<button data-copy="${esc(i.code)}">Copy link</button><button data-revoke="${esc(i.code)}">Revoke</button>` : ''}</li>`;
+    }).join('') || '<li><small>No invites yet.</small></li>';
+    $('userList').innerHTML = users.map((u) => `<li><div class="t"><b>${esc(u.name)}${u.admin ? ' · admin' : ''}</b>
+        <small>joined ${when(u.created)} · ${u.last_active ? 'last active ' + when(u.last_active) : 'no listening yet'} · ${u.episodes} episodes</small></div>
+        ${u.name === session.user ? '' : `<button data-remove="${esc(u.name)}">Remove</button>`}</li>`).join('');
+  } catch (err) { flash('adminMsg', err.message); }
+}
+
+$('settingsBtn').addEventListener('click', openPanel);
+$('panelClose').addEventListener('click', closePanel);
+$('panel').addEventListener('click', (e) => { if (e.target === $('panel')) closePanel(); });
+$('signOut').addEventListener('click', () => { closePanel(); signOut(); });
+$('signOutAll').addEventListener('click', async () => {
+  try { await apiJson('/account/signout-all', { method: 'POST', body: {} }); } catch { /* signing out locally regardless */ }
+  closePanel(); signOut();
+});
+$('pwForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await apiJson('/account/password', { method: 'POST', body: { current: $('pwCur').value, next: $('pwNew').value } });
+    $('pwCur').value = ''; $('pwNew').value = '';
+    flash('acctMsg', 'Password changed. Other devices were signed out.');
+  } catch (err) { flash('acctMsg', err.message); }
+});
+$('delForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!confirm('Delete your account and all listening progress? This cannot be undone.')) return;
+  try {
+    await apiJson('/account/delete', { method: 'POST', body: { password: $('delPw').value } });
+    closePanel(); signOut();
+  } catch (err) { flash('acctMsg', err.message); }
+});
+$('inviteForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    const out = await apiJson('/admin/invites', { method: 'POST', body: { note: $('inviteNote').value, days: Number($('inviteDays').value) } });
+    lastInvite = out.code;
+    $('newCode').textContent = out.code;
+    $('newInvite').hidden = false;
+    $('inviteNote').value = '';
+    flash('adminMsg', '');
+    loadAdmin();
+  } catch (err) { flash('adminMsg', err.message); }
+});
+async function copy(text, id) {
+  try { await navigator.clipboard.writeText(text); flash(id, 'Link copied.'); } catch { flash(id, text); }
+}
+$('copyLink').addEventListener('click', () => copy(inviteLink(lastInvite), 'adminMsg'));
+$('adminSec').addEventListener('click', async (e) => {
+  const d = e.target.dataset ?? {};
+  try {
+    if (d.copy) copy(inviteLink(d.copy), 'adminMsg');
+    else if (d.revoke) { await apiJson('/admin/invites?code=' + encodeURIComponent(d.revoke), { method: 'DELETE' }); loadAdmin(); }
+    else if (d.remove && confirm(`Remove ${d.remove} and their listening progress?`)) {
+      await apiJson('/admin/users?name=' + encodeURIComponent(d.remove), { method: 'DELETE' }); loadAdmin();
+    }
+  } catch (err) { flash('adminMsg', err.message); }
+});
+
+// An invite link (#invite=CODE) opens straight to account creation.
 setMode(false);
+{
+  const code = new URLSearchParams(location.hash.slice(1)).get('invite');
+  if (code && !session) {
+    setMode(true);
+    $('invite').value = code;
+    history.replaceState(null, '', location.pathname);
+  }
+}
+
 if (session) start(); else showLogin(true);

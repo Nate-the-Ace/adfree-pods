@@ -79,6 +79,19 @@
     #loginForm input { padding:11px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--fg); font:inherit; }
     #loginForm a { color:var(--accent); font-size:.9rem; }
     #loginMsg { color:var(--bad); min-height:1.2em; font-size:.9rem; }
+    #panel { position:fixed; inset:0; z-index:9; background:rgba(0,0,0,.55); display:flex; justify-content:center; align-items:flex-start; overflow-y:auto; padding:24px 12px; }
+    #panel[hidden] { display:none; }
+    #panel .card { background:var(--raise); border:1px solid var(--line); border-radius:16px; padding:8px 18px 18px; width:min(560px, 100%); }
+    #panel h2 { margin-top:16px; }
+    #panel form { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+    #panel input, #panel select { flex:1 1 180px; padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--fg); font:inherit; }
+    #panel .row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+    #panel li { font-size:.9rem; }
+    #panel details { margin-top:10px; color:var(--mute); }
+    .danger { color:var(--bad); }
+    .note { min-height:1.2em; font-size:.85rem; color:var(--mute); }
+    #newInvite { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:10px; background:var(--card); border-radius:10px; margin:6px 0 10px; }
+    #newInvite code { font-size:1.15rem; letter-spacing:.06em; font-weight:700; }
     @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
   </style>
 </head>
@@ -94,11 +107,50 @@
     <div id="loginMsg" role="status"></div>
   </form>
 </div>
+<div id="panel" hidden>
+  <div class="card">
+    <div class="dhead"><b>Settings</b><button id="panelClose">Close</button></div>
+    <section>
+      <h2>Account</h2>
+      <p id="acctName"></p>
+      <form id="pwForm">
+        <input id="pwCur" type="password" autocomplete="current-password" placeholder="Current password" required>
+        <input id="pwNew" type="password" autocomplete="new-password" placeholder="New password (8+ characters)" required>
+        <button>Change password</button>
+      </form>
+      <div class="row"><button id="signOut">Sign out</button><button id="signOutAll">Sign out all devices</button></div>
+      <details><summary>Delete account</summary>
+        <form id="delForm">
+          <input id="delPw" type="password" autocomplete="current-password" placeholder="Password" required>
+          <button class="danger">Delete my account and progress</button>
+        </form>
+      </details>
+      <div id="acctMsg" class="note" role="status"></div>
+    </section>
+    <section id="adminSec" hidden>
+      <h2>Invites</h2>
+      <form id="inviteForm">
+        <input id="inviteNote" placeholder="Note (who is it for?)" maxlength="80">
+        <select id="inviteDays"><option value="1">1 day</option><option value="7" selected>7 days</option><option value="30">30 days</option></select>
+        <button>Create invite</button>
+      </form>
+      <div id="newInvite" hidden>
+        <code id="newCode"></code>
+        <button id="copyLink">Copy invite link</button>
+        <small>One use. Send the link, or the code to type at sign-up.</small>
+      </div>
+      <ul id="inviteList"></ul>
+      <h2>People</h2>
+      <ul id="userList"></ul>
+      <div id="adminMsg" class="note" role="status"></div>
+    </section>
+  </div>
+</div>
 <main>
   <header>
     <h1>Cool Zone Media : Direct</h1>
     <span id="who"></span>
-    <button id="logout" hidden>Sign out</button>
+    <button id="settingsBtn" hidden>Settings</button>
   </header>
   <div id="msg" role="status"></div>
   <section id="resume" hidden>

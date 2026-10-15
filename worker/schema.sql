@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT PRIMARY KEY,
   salt TEXT NOT NULL,
   hash TEXT NOT NULL,
-  created INTEGER NOT NULL
+  created INTEGER NOT NULL,
+  is_admin INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
@@ -21,4 +22,13 @@ CREATE TABLE IF NOT EXISTS progress (
   played INTEGER NOT NULL DEFAULT 0,
   updated INTEGER NOT NULL,
   PRIMARY KEY (user, guid)
+);
+CREATE TABLE IF NOT EXISTS invites (
+  code TEXT PRIMARY KEY,
+  note TEXT NOT NULL DEFAULT '',
+  created INTEGER NOT NULL,
+  expires INTEGER NOT NULL,
+  used_by TEXT,
+  used_at INTEGER,
+  revoked INTEGER NOT NULL DEFAULT 0
 );
