@@ -38,6 +38,7 @@
                    background:linear-gradient(transparent, rgba(0,0,0,.75)); }
     #grid.open .tile:not(.active) { filter:grayscale(1) brightness(.6); opacity:.55; }
     .tile.active { box-shadow:0 0 0 3px var(--accent), 0 6px 20px var(--shadow); }
+    .tile.failed { box-shadow:0 0 0 2px var(--bad), 0 2px 10px var(--shadow); }
 
     /* Drawer: a full-width grid item placed after the selected tile's row, so later rows are pushed down.
        grid-rows 0fr -> 1fr animates height; the content slides down from beneath the tiles. */

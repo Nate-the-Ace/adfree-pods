@@ -154,6 +154,12 @@ function placeDrawer() {
   drawer.style.setProperty('--cx', `${sel.offsetLeft + sel.offsetWidth / 2}px`);
 }
 
+// A feed that could not be fetched gets a red outline on its tile.
+function markFeed(url, ok) {
+  const tile = [...$('grid').querySelectorAll('.tile')].find((t) => t.dataset.url === url);
+  tile?.classList.toggle('failed', !ok);
+}
+
 // Open a show's drawer (or close it with null). Other tiles grey out while it is open.
 function openShow(url) {
   const drawer = $('drawer');
@@ -182,7 +188,7 @@ async function loadFeed(url) {
   const cached = load('adfree.ep.' + url, null);
   episodes = cached ?? [];
   renderEpisodes();
-  say(cached ? '' : 'Loading…');
+  $('eps').innerHTML = cached ? $('eps').innerHTML : '<li><small>Loading…</small></li>';
   try {
     const r = await api('/feed?' + new URLSearchParams({ url }));
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
@@ -190,10 +196,12 @@ async function loadFeed(url) {
     if (openFeed !== url) return; // switched or closed meanwhile
     episodes = parsed.episodes.map((e) => ({ ...e, feed: url }));
     store('adfree.ep.' + url, episodes.slice(0, 120));
-    say('');
+    markFeed(url, true);
     renderEpisodes();
   } catch (err) {
-    if (!(err instanceof AuthError)) say(`Feed failed: ${err.message}${cached ? ' (showing saved list)' : ''}`);
+    if (err instanceof AuthError) return;
+    markFeed(url, false);
+    if (!cached) $('eps').innerHTML = '<li><small>This feed could not be loaded.</small></li>';
   }
 }
 
