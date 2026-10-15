@@ -2,6 +2,10 @@
 
 Goal: understand how each podcast distributor delivers ads, how much they change the listening experience, and whether the original (ad-free) audio can be fetched. One file per show; this page is the comparison.
 
+## Scope
+
+Targets the stitched-in (dynamically inserted) ads, which the host adds at download time and which can be avoided by fetching the original file. Host-read sponsor spots are part of the recording itself, are treated as unavoidable, and are out of scope. They are still noted per show when known.
+
 ## Method (repeatable)
 
 1. Find the feed: `curl "https://itunes.apple.com/search?media=podcast&term=<name>"` and read `feedUrl`.

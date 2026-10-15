@@ -32,7 +32,7 @@ Yes, two independent ways, both measured:
 1. **User-Agent.** A bot or generic-client User-Agent (Googlebot is already our crawler UA) gets the original file, identical to the declared length. Checked on 8 episodes from newest to oldest: all 0 s.
 2. **Source IP.** From a Cloudflare edge (ATL) a throwaway Worker got the original for *every* UA including Chrome, Apple Podcasts, Spotify and "Libsyn". Libsyn appears not to stitch for datacenter traffic. So the deployed Worker already receives ad-free audio from Libsyn even without the UA rule.
 
-What this does not remove: any host-read sponsor spots recorded into the show. The size check cannot see those. Not yet checked by listening or transcribing.
+What this does not remove: host-read sponsor spots recorded into the show. These are treated as unavoidable and out of scope (see README); the size check cannot see them either.
 
 ## Fragility and unknowns
 
