@@ -18,6 +18,8 @@ let session = load('adfree.session', null); // { token, user }
 let prog = new Map(); // guid -> progress row from the server
 let episodes = []; // open show's episodes, newest first
 let openFeed = null; // url of the show whose drawer is open
+let userFeeds = []; // this account's private feeds, from the server
+const shows = () => [...FEEDS, ...userFeeds];
 let shown = PAGE;
 let current = null; // episode being played
 let lastSave = 0;
@@ -131,15 +133,16 @@ function renderResume() {
   $('resumeList').dataset.guids = JSON.stringify(rows.map((r) => r.guid));
   $('resumeList').innerHTML = rows.map((r, i) => `<li>
       <div class="t"><b>${esc(r.title)}</b>
-        <small>${esc(FEEDS.find((f) => f.url === r.feed)?.name ?? '')} · ${clock(r.position)}${r.duration ? ' of ' + clock(r.duration) : ''}</small></div>
+        <small>${esc(shows().find((f) => f.url === r.feed)?.name ?? '')} · ${clock(r.position)}${r.duration ? ' of ' + clock(r.duration) : ''}</small></div>
       <button data-resume="${i}">Resume</button></li>`).join('');
 }
 
 // ---- shows ----
 function renderGrid() {
   for (const t of $('grid').querySelectorAll('.tile')) t.remove();
-  $('grid').insertAdjacentHTML('afterbegin', FEEDS.map((f) => `<button class="tile" role="listitem" data-url="${esc(f.url)}" aria-label="${esc(f.name)}">
-    <img src="${esc(f.art)}" alt="" loading="lazy"><span class="label">${esc(f.name)}</span></button>`).join(''));
+  $('grid').insertAdjacentHTML('afterbegin', shows().map((f) => `<button class="tile${f.art ? '' : ' noart'}" role="listitem" data-url="${esc(f.url)}" aria-label="${esc(f.name)}">
+    ${f.art ? `<img src="${esc(f.art)}" alt="" loading="lazy">` : ''}<span class="label">${esc(f.name)}</span></button>`).join(''));
+  if (openFeed) for (const t of $('grid').querySelectorAll('.tile')) t.classList.toggle('active', t.dataset.url === openFeed);
 }
 
 // Put the drawer right after the last tile of the selected tile's row, so rows below get pushed down.
@@ -177,7 +180,7 @@ function openShow(url) {
   placeDrawer();
   void drawer.offsetHeight;
   drawer.classList.add('open');
-  $('drawerTitle').textContent = FEEDS.find((f) => f.url === url).name;
+  $('drawerTitle').textContent = shows().find((f) => f.url === url).name;
   loadFeed(url);
   $('drawer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -318,6 +321,7 @@ function start() {
   for (const r of load('adfree.prog.' + session.user, [])) prog.set(r.guid, r);
   renderGrid();
   renderResume();
+  apiJson('/feeds').then((rows) => { userFeeds = rows; renderGrid(); }).catch(() => {});
   apiJson('/me').then((m) => { session.admin = m.admin; store('adfree.session', session); }).catch(() => {});
   refreshProgress().catch((err) => { if (!(err instanceof AuthError)) say(`Could not sync progress: ${err.message}`); });
 }
@@ -335,6 +339,8 @@ function openPanel() {
   flash('acctMsg', ''); flash('adminMsg', '');
   $('newInvite').hidden = true;
   $('adminSec').hidden = !session.admin;
+  flash('privMsg', '');
+  loadPrivate();
   if (session.admin) loadAdmin();
 }
 function closePanel() { $('panel').hidden = true; }
@@ -353,6 +359,35 @@ async function loadAdmin() {
         ${u.name === session.user ? '' : `<button data-remove="${esc(u.name)}">Remove</button>`}</li>`).join('');
   } catch (err) { flash('adminMsg', err.message); }
 }
+
+async function loadPrivate() {
+  try {
+    userFeeds = await apiJson('/feeds');
+    $('privList').innerHTML = userFeeds.map((f) => `<li><div class="t"><b>${esc(f.name)}</b></div><button data-rmfeed="${f.id}">Remove</button></li>`).join('')
+      || '<li><small>None yet.</small></li>';
+    renderGrid();
+  } catch (err) { flash('privMsg', err.message); }
+}
+$('privForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  flash('privMsg', 'Checking feed…');
+  try {
+    await apiJson('/feeds', { method: 'POST', body: { url: $('privUrl').value, name: $('privName').value } });
+    $('privUrl').value = ''; $('privName').value = '';
+    flash('privMsg', 'Added.');
+    loadPrivate();
+  } catch (err) { flash('privMsg', err.message); }
+});
+$('privList').addEventListener('click', async (e) => {
+  const id = e.target.dataset?.rmfeed;
+  if (!id || !confirm('Remove this private feed? Your listening progress is kept.')) return;
+  try {
+    const f = userFeeds.find((x) => String(x.id) === id);
+    await apiJson('/feeds?id=' + id, { method: 'DELETE' });
+    if (f && openFeed === f.url) openShow(null);
+    loadPrivate();
+  } catch (err) { flash('privMsg', err.message); }
+});
 
 $('settingsBtn').addEventListener('click', openPanel);
 $('panelClose').addEventListener('click', closePanel);
