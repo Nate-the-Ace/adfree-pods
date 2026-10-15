@@ -2,6 +2,7 @@ export const WORKER = 'https://adfree-pods.ndschonegg.workers.dev';
 
 const CZM = 'https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1';
 
+// `hide`: episode titles matching it are left out (e.g. QAA's paywall teasers ending in "Sample").
 // Cool Zone Media shows, all Omny-hosted.
 const ART = (p) => `https://is1-ssl.mzstatic.com/image/thumb/${p}/300x300bb.jpg`;
 
@@ -16,7 +17,7 @@ export const FEEDS = [
   // Not Cool Zone: other distributors. See docs/research/.
   { name: 'The Know Rogan Experience', art: ART('Podcasts211/v4/bc/47/ec/bc47ecd7-1e8a-23b0-ed37-649c44c50777/mza_7718141950099779240.png'), url: 'https://rss.libsyn.com/shows/561260/destinations/4849865.xml' },
   { name: 'I Never Liked You', art: ART('Podcasts221/v4/41/52/af/4152affa-3ff9-8a51-ad39-f728c571c0db/mza_4188228532142632286.jpg'), url: 'https://feeds.megaphone.fm/POTATOLANEINC2238962808' },
-  { name: 'QAA', art: ART('Podcasts123/v4/56/f2/1a/56f21a7a-6bdc-7b46-bbbb-cfbdbe3ce2f4/mza_5026938574161370618.jpg'), url: 'https://feeds.soundcloud.com/users/soundcloud:users:492135420/sounds.rss' },
+  { name: 'QAA', hide: /sample\s*$/i, art: ART('Podcasts123/v4/56/f2/1a/56f21a7a-6bdc-7b46-bbbb-cfbdbe3ce2f4/mza_5026938574161370618.jpg'), url: 'https://feeds.soundcloud.com/users/soundcloud:users:492135420/sounds.rss' },
   { name: 'Sawbones', art: ART('Podcasts211/v4/13/c8/90/13c8906e-e949-0684-7de7-260030f73b2c/mza_11856965767795188650.jpg'), url: 'https://feeds.simplecast.com/y1LF_sn2' },
   { name: 'My Brother, My Brother and Me', art: ART('Podcasts211/v4/6e/a7/35/6ea7353b-0692-99b1-12a0-7b33fa475aa8/mza_13316954681377313409.jpg'), url: 'https://feeds.simplecast.com/wjQvYtdl' },
   { name: 'Lions Led by Donkeys', art: ART('Podcasts123/v4/e6/42/fc/e642fc86-c6c5-54bc-ffd9-e00c19b92614/mza_6065585337065569787.jpg'), url: 'https://feeds.soundcloud.com/users/soundcloud:users:457245963/sounds.rss' },

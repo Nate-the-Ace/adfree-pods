@@ -215,7 +215,8 @@ function openShow(url) {
 async function loadFeed(url) {
   shown = PAGE;
   const cached = load('adfree.ep.' + url, null);
-  episodes = cached ?? [];
+  const hide0 = shows().find((f) => f.url === url)?.hide;
+  episodes = (cached ?? []).filter((e) => !hide0?.test(e.title));
   renderEpisodes();
   $('eps').innerHTML = cached ? $('eps').innerHTML : '<li><small>Loading…</small></li>';
   try {
@@ -223,7 +224,8 @@ async function loadFeed(url) {
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
     const parsed = parseFeed(await r.text());
     if (openFeed !== url) return; // switched or closed meanwhile
-    episodes = parsed.episodes.map((e) => ({ ...e, feed: url }));
+    const hide = shows().find((f) => f.url === url)?.hide;
+    episodes = parsed.episodes.filter((e) => !hide?.test(e.title)).map((e) => ({ ...e, feed: url }));
     store('adfree.ep.' + url, episodes.slice(0, 120));
     markFeed(url, true);
     renderEpisodes();
