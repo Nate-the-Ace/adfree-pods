@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101014">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="CZM Direct">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>Cool Zone Media : Direct</title>
   <style>
     :root {
@@ -17,6 +23,7 @@
       }
     }
     * { box-sizing:border-box; }
+    body { padding-left:env(safe-area-inset-left, 0px); padding-right:env(safe-area-inset-right, 0px); }
     body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, -apple-system, sans-serif; }
     main { max-width:760px; margin:0 auto; padding:16px 16px 150px; }
     header { display:flex; align-items:baseline; gap:10px; margin:6px 0 16px; }
@@ -93,6 +100,14 @@
     #bar .vol input { width:64px; }
     @media (min-width:760px) { #bar .vol input { width:90px; } }
     #bar input[type=range] { accent-color:var(--accent); height:20px; }
+    /* Phones: lift the whole bar clear of the bottom-edge swipe zone (home bar, tab-switch swipe)
+       and keep the controls up in the first row, with the seek bar below them. */
+    @media (max-width:759px) {
+      footer { padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 34px); }
+      main { padding-bottom:230px; }
+      #bar { grid-template-areas:"art meta ctl" "seek seek seek"; gap:4px 12px; }
+      #bar .vol { display:none; }
+    }
     @media (min-width:760px) {
       #bar { grid-template-columns:auto minmax(120px,1fr) auto minmax(180px,1.4fr) auto; grid-template-areas:"art meta ctl seek vol"; }
     }
@@ -222,7 +237,7 @@
     </div>
     <div class="seek"><span id="tCur">0:00</span><input id="seek" type="range" min="0" max="0" step="1" value="0" aria-label="Seek" disabled><span id="tEnd">0:00</span></div>
     <div class="vol" id="volBox"><button id="mute" class="ic" aria-label="Mute" title="Mute"></button><input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"></div>
-    <audio id="player" preload="metadata"></audio>
+    <audio id="player" preload="metadata" playsinline></audio>
   </div>
 </footer>
 <script type="module" src="app.js"></script>

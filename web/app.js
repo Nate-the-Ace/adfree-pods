@@ -367,12 +367,43 @@ player.volume = load('adfree.volume', 1);
 updateVolumeUI();
 updateControls();
 
+// Registers the page with the OS as a media player: lock screen / Control Center / car and
+// Bluetooth controls. Phones route headset and steering-wheel buttons here.
+function setPlaybackState() {
+  if (!('mediaSession' in navigator)) return;
+  navigator.mediaSession.playbackState = !current ? 'none' : player.paused ? 'paused' : 'playing';
+  if (current && Number.isFinite(player.duration) && player.duration > 0) {
+    try { navigator.mediaSession.setPositionState({ duration: player.duration, position: Math.min(player.currentTime, player.duration), playbackRate: player.playbackRate }); } catch { /* not supported */ }
+  }
+}
+for (const ev of ['play', 'pause', 'ended', 'loadedmetadata', 'seeked', 'emptied']) player.addEventListener(ev, setPlaybackState);
+
+// A Bluetooth "play" with nothing loaded (the page was reloaded or woken) resumes the last unfinished episode.
+function resumeLast() {
+  if (!session) return;
+  const row = [...prog.values()].filter((r) => !r.played && r.position > 5).sort((a, b) => b.updated - a.updated)[0];
+  if (!row) return;
+  // Straight to player.play() with no network wait first: iOS only honors a play() that starts
+  // inside the remote-control event, so the ad check and progress refresh are skipped here.
+  const ep = fromRow(row);
+  current = ep;
+  setLastFeed(ep.feed);
+  setNowPlaying(ep);
+  player.src = audioUrl(ep);
+  player.addEventListener('loadedmetadata', () => { player.currentTime = row.position; }, { once: true });
+  lastSave = Date.now();
+  return player.play().then(() => { $('now').textContent = ep.title; }).catch(() => {});
+}
+
 if ('mediaSession' in navigator) {
   const h = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch { /* action not supported here */ } };
-  h('play', () => player.play());
+  h('play', () => (current ? player.play() : resumeLast()));
   h('pause', () => player.pause());
+  h('stop', () => player.pause());
   h('seekbackward', (d) => skip(-(d.seekOffset || SKIP_S)));
   h('seekforward', (d) => skip(d.seekOffset || SKIP_S));
+  h('previoustrack', () => skip(-SKIP_S)); // car and headset "previous / next" act as skip back / forward
+  h('nexttrack', () => skip(SKIP_S));
   h('seekto', (d) => { if (current && d.seekTime != null) player.currentTime = d.seekTime; });
 }
 
