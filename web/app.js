@@ -1,5 +1,5 @@
-import { parseFeed } from './feed.js';
-import { WORKER, FEEDS } from './config.js';
+import { parseFeed } from './feed.js?v=__BUILD__';
+import { WORKER, FEEDS } from './config.js?v=__BUILD__';
 
 const $ = (id) => document.getElementById(id);
 const player = $('player');
@@ -297,7 +297,22 @@ player.addEventListener('pause', () => { if (current && !player.ended && player.
 player.addEventListener('ended', () => { if (current) { pushPlayback(current, { played: 1 }); renderEpisodes(); renderResume(); } });
 player.addEventListener('seeked', () => { if (current && player.currentTime) { lastSave = Date.now(); pushPlayback(current); } });
 player.addEventListener('error', () => { if (current) say('Playback failed. Check your connection or sign in again.'); });
+// A home-screen web app keeps the old page in memory between launches, so ask the server which
+// build is current (stamped in by the deploy) and reload when this one is stale and idle.
+const BUILD = document.querySelector('meta[name=build]')?.content;
+async function checkForUpdate() {
+  if (!BUILD || BUILD.startsWith('__')) return; // local development: never stamped
+  try {
+    const r = await fetch('version.json?' + Date.now(), { cache: 'no-store' });
+    const { build } = await r.json();
+    if (build && build !== BUILD && player.paused) location.reload();
+  } catch { /* offline: try again next time */ }
+}
+window.addEventListener('pageshow', checkForUpdate);
+setInterval(() => { if (!document.hidden) checkForUpdate(); }, 10 * 60 * 1000);
+
 document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) checkForUpdate();
   if (!session) return;
   if (document.hidden) { if (current && player.currentTime) pushPlayback(current, { keepalive: true }); }
   else if (player.paused) refreshProgress().catch(() => {});
