@@ -1,6 +1,6 @@
 {
-  "name": "Cool Zone Media : Direct",
-  "short_name": "CZM Direct",
+  "name": "Podcasts : Direct",
+  "short_name": "Podcasts Direct",
   "description": "Podcast player with synced listening progress",
   "start_url": "./",
   "scope": "./",
