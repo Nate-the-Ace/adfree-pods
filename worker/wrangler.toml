@@ -4,3 +4,8 @@ compatibility_date = "2026-10-01"
 
 [vars]
 ALLOWED_ORIGINS = "https://nate-the-ace.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "adfree-pods"
+database_id = "4a78d3cd-2241-4657-8529-56a933e3fab4"

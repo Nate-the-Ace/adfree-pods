@@ -27,28 +27,39 @@
     footer { position:fixed; left:0; right:0; bottom:0; background:var(--card); border-top:1px solid var(--line); padding:10px 16px; }
     footer .in { max-width:760px; margin:0 auto; }
     audio { width:100%; }
-    details { margin-bottom:12px; color:var(--mute); }
-    details form { margin-top:8px; flex-wrap:wrap; }
-    details input { flex:1 1 220px; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); }
+    h1 small { font-size:.8rem; color:var(--mute); font-weight:400; }
+    h1 button { font-size:.75rem; padding:4px 8px; float:right; }
+    h2 { font-size:1rem; margin:16px 0 4px; }
+    .bar { height:4px; background:var(--line); border-radius:2px; margin-top:6px; }
+    .bar i { display:block; height:100%; background:var(--ok); border-radius:2px; }
+    li.done .t b { color:var(--mute); }
+    #login[hidden] { display:none; }
+    #login { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:10; }
+    #loginForm { flex-direction:column; width:min(340px, 90vw); align-items:stretch; }
+    #loginForm input { padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); }
+    #loginMsg { color:var(--bad); min-height:1.2em; }
     #msg { color:var(--bad); min-height:1.2em; }
   </style>
 </head>
 <body>
-<main>
-  <h1>Adfree Pods</h1>
-  <form id="add">
-    <input type="url" id="feedUrl" placeholder="Podcast RSS feed URL" required>
-    <button>Add</button>
+<div id="login" hidden>
+  <form id="loginForm">
+    <h2 id="loginTitle">Sign in</h2>
+    <input id="user" autocomplete="username" placeholder="Username" required>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="Password (8+ characters)" required>
+    <input id="invite" type="password" placeholder="Invite code" hidden>
+    <button>Sign in</button>
+    <a href="#" id="toggle">Create an account</a>
+    <div id="loginMsg" role="status"></div>
   </form>
+</div>
+<main>
+  <h1>Adfree Pods <small id="who"></small> <button id="logout" hidden>Sign out</button></h1>
   <div id="msg" role="status"></div>
-  <details id="settings">
-    <summary>Settings</summary>
-    <form id="cfg">
-      <input type="url" id="workerUrl" placeholder="Worker URL" required>
-      <input type="password" id="accessKey" placeholder="Access key" required>
-      <button>Save</button>
-    </form>
-  </details>
+  <section id="resume" hidden>
+    <h2>Continue listening</h2>
+    <ul id="resumeList"></ul>
+  </section>
   <select id="feeds" aria-label="Feed"></select>
   <ul id="eps"></ul>
 </main>

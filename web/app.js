@@ -1,50 +1,159 @@
 import { parseFeed } from './feed.js';
+import { WORKER, FEEDS } from './config.js';
 
 const $ = (id) => document.getElementById(id);
 const player = $('player');
 const LABEL = { clean: 'ad-free', suspected: 'ads suspected', unknown: 'unchecked' };
-let current = null; // { feed, ep }
-let lastSave = 0;
+const SAVE_EVERY_MS = 15000;
+const PAGE = 50;
 
-// ---- storage: everything lives in this browser ----
 function load(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
 }
-const save = (key, v) => localStorage.setItem(key, JSON.stringify(v));
-let cfg = load('adfree.cfg', { worker: '', key: '' });
-let feeds = load('adfree.feeds', []); // [{url, title, episodes: [{..., verdict, position}]}]
-const persist = () => save('adfree.feeds', feeds);
+function store(key, v) {
+  try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* quota: cache only, safe to drop */ }
+}
 
-// Open the page once with #worker=...&key=... to configure a phone without typing.
-{
-  const h = new URLSearchParams(location.hash.slice(1));
-  if (h.get('worker') && h.get('key')) {
-    cfg = { worker: h.get('worker').replace(/\/$/, ''), key: h.get('key') };
-    save('adfree.cfg', cfg);
-    history.replaceState(null, '', location.pathname);
+let session = load('adfree.session', null); // { token, user }
+let prog = new Map(); // guid -> progress row from the server
+let episodes = []; // current feed, newest first
+let shown = PAGE;
+let current = null; // episode being played
+let lastSave = 0;
+const verdicts = load('adfree.verdicts', {});
+
+// ---- api ----
+class AuthError extends Error {}
+
+async function api(path, { method = 'GET', body, keepalive } = {}) {
+  const r = await fetch(WORKER + path, {
+    method,
+    keepalive,
+    headers: { ...(session ? { authorization: `Bearer ${session.token}` } : {}), ...(body ? { 'content-type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (r.status === 401 && session) { signOut(); throw new AuthError('Session expired. Sign in again.'); }
+  return r;
+}
+async function apiJson(path, opts) {
+  const r = await api(path, opts);
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+  return data;
+}
+// <audio> cannot send headers, so media requests carry the session token in the URL.
+const audioUrl = (ep) => `${WORKER}/audio?${new URLSearchParams({ url: ep.enclosureUrl, len: ep.declaredLength ?? '', token: session.token })}`;
+
+// ---- helpers ----
+const say = (t) => { $('msg').textContent = t || ''; };
+function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+function clock(s) {
+  s = Math.floor(s);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(x).padStart(2, '0')}` : `${m}:${String(x).padStart(2, '0')}`;
+}
+
+// ---- progress ----
+async function refreshProgress() {
+  const rows = await apiJson('/progress');
+  prog = new Map(rows.map((r) => [r.guid, r]));
+  store('adfree.prog.' + session.user, rows);
+  renderEpisodes();
+  renderResume();
+}
+
+function putProgress(ep, row, keepalive) {
+  prog.set(ep.guid, row);
+  api('/progress', {
+    method: 'PUT',
+    keepalive,
+    body: {
+      guid: ep.guid, feed: ep.feed, title: ep.title, enclosureUrl: ep.enclosureUrl, declaredLength: ep.declaredLength,
+      position: row.position, duration: row.duration, played: !!row.played,
+    },
+  }).catch(() => {});
+}
+
+function rowFor(ep, position, played) {
+  return {
+    guid: ep.guid, feed: ep.feed, title: ep.title, enclosure_url: ep.enclosureUrl, declared_length: ep.declaredLength ?? null,
+    position, duration: prog.get(ep.guid)?.duration ?? ep.durationSec ?? null, played: played ? 1 : 0, updated: Date.now(),
+  };
+}
+
+function pushPlayback(ep, { played, keepalive } = {}) {
+  if (!session) return;
+  const duration = Number.isFinite(player.duration) ? player.duration : prog.get(ep.guid)?.duration ?? ep.durationSec ?? null;
+  const row = { ...rowFor(ep, player.currentTime || 0, played ?? prog.get(ep.guid)?.played), duration };
+  putProgress(ep, row, keepalive);
+}
+
+function setPlayed(ep, played) {
+  const position = played ? prog.get(ep.guid)?.position ?? 0 : 0;
+  putProgress(ep, rowFor(ep, position, played));
+  renderEpisodes();
+  renderResume();
+}
+
+// ---- rendering ----
+function fromRow(r) {
+  return { guid: r.guid, feed: r.feed, title: r.title, enclosureUrl: r.enclosure_url, declaredLength: r.declared_length, durationSec: r.duration };
+}
+
+function playLabel(guid) {
+  const r = prog.get(guid);
+  if (r?.played) return 'Replay';
+  return r && r.position > 5 ? `Resume ${clock(r.position)}` : 'Play';
+}
+
+function renderEpisodes() {
+  const list = episodes.slice(0, shown);
+  $('eps').innerHTML = list.map((e, i) => {
+    const r = prog.get(e.guid);
+    const dur = e.durationSec || r?.duration;
+    const pct = r?.played ? 100 : r && dur ? Math.min(100, (r.position / dur) * 100) : 0;
+    const v = verdicts[e.guid];
+    return `<li class="${r?.played ? 'done' : ''}">
+      <div class="t"><b>${esc(e.title)}</b>
+        <small>${esc(e.pubDate ? new Date(e.pubDate).toLocaleDateString() : '')} ${dur ? clock(dur) : ''}</small>
+        ${pct ? `<div class="bar"><i style="width:${pct}%"></i></div>` : ''}</div>
+      ${v ? `<span class="badge ${v}">${LABEL[v]}</span>` : ''}
+      <button data-mark="${i}" title="${r?.played ? 'Mark unplayed' : 'Mark played'}">${r?.played ? '↺' : '✓'}</button>
+      <button data-play="${i}">${playLabel(e.guid)}</button>
+    </li>`;
+  }).join('') + (episodes.length > shown ? '<li><button data-more="1">Show more</button></li>' : '');
+}
+
+function renderResume() {
+  const rows = [...prog.values()].filter((r) => !r.played && r.position > 30).sort((a, b) => b.updated - a.updated).slice(0, 5);
+  $('resume').hidden = rows.length === 0;
+  $('resumeList').dataset.guids = JSON.stringify(rows.map((r) => r.guid));
+  $('resumeList').innerHTML = rows.map((r, i) => `<li>
+      <div class="t"><b>${esc(r.title)}</b>
+        <small>${esc(FEEDS.find((f) => f.url === r.feed)?.name ?? '')} · ${clock(r.position)}${r.duration ? ' of ' + clock(r.duration) : ''}</small></div>
+      <button data-resume="${i}">Resume</button></li>`).join('');
+}
+
+// ---- feeds ----
+async function loadFeed() {
+  const url = $('feeds').value;
+  shown = PAGE;
+  const cached = load('adfree.ep.' + url, null);
+  episodes = cached ?? [];
+  renderEpisodes();
+  say(cached ? '' : 'Loading…');
+  try {
+    const r = await api('/feed?' + new URLSearchParams({ url }));
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
+    const parsed = parseFeed(await r.text());
+    if ($('feeds').value !== url) return; // switched shows meanwhile
+    episodes = parsed.episodes.map((e) => ({ ...e, feed: url }));
+    store('adfree.ep.' + url, episodes.slice(0, 120));
+    say('');
+    renderEpisodes();
+  } catch (err) {
+    if (!(err instanceof AuthError)) say(`Feed failed: ${err.message}${cached ? ' (showing saved list)' : ''}`);
   }
-}
-
-// ---- worker calls ----
-const wurl = (path, params) => `${cfg.worker}${path}?${new URLSearchParams({ ...params, key: cfg.key })}`;
-const audioUrl = (ep) => wurl('/audio', { url: ep.enclosureUrl, len: ep.declaredLength ?? '' });
-
-async function fetchFeed(url) {
-  if (!cfg.worker) throw new Error('Set the Worker URL and access key in Settings first.');
-  const r = await fetch(wurl('/feed', { url }));
-  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
-  return parseFeed(await r.text());
-}
-
-async function addOrRefresh(url) {
-  const parsed = await fetchFeed(url); // throws before any write: old episodes kept
-  let feed = feeds.find((f) => f.url === url);
-  if (!feed) feeds.push((feed = { url, title: '', episodes: [] }));
-  feed.title = parsed.title;
-  const old = new Map(feed.episodes.map((e) => [e.guid, e]));
-  feed.episodes = parsed.episodes.map((e) => ({ ...e, verdict: old.get(e.guid)?.verdict ?? null, position: old.get(e.guid)?.position ?? 0 }));
-  persist();
-  return feed;
 }
 
 // A 1-byte ranged GET: the worker reports whether the upstream total matches the feed's length.
@@ -55,87 +164,109 @@ async function check(ep) {
   return r.headers.get('x-adcheck') || 'unknown';
 }
 
-// ---- ui ----
-const fmtDur = (s) => (s ? (s >= 3600 ? `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m` : `${Math.floor(s / 60)}m`) : '');
-const say = (t) => { $('msg').textContent = t || ''; };
-function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
-
-function render(selectUrl) {
-  $('feeds').innerHTML = feeds.map((f) => `<option value="${esc(f.url)}">${esc(f.title || f.url)}</option>`).join('');
-  $('feeds').hidden = feeds.length === 0;
-  if (selectUrl) $('feeds').value = selectUrl;
-  renderEpisodes();
-}
-
-function currentFeed() { return feeds.find((f) => f.url === $('feeds').value); }
-
-function renderEpisodes() {
-  const feed = currentFeed();
-  $('eps').innerHTML = (feed?.episodes ?? []).map((e, i) => `
-    <li>
-      <div class="t"><b>${esc(e.title)}</b>
-        <small>${esc(e.pubDate ? new Date(e.pubDate).toLocaleDateString() : '')} ${fmtDur(e.durationSec)}</small></div>
-      <span class="badge ${e.verdict || 'unknown'}">${LABEL[e.verdict || 'unknown']}</span>
-      <button data-play="${i}">Play</button>
-    </li>`).join('');
-}
-
-async function play(i) {
-  const feed = currentFeed();
-  const ep = feed.episodes[i];
-  current = { feed, ep };
+async function play(ep) {
+  if (current && current.guid !== ep.guid && player.currentTime) pushPlayback(current, { keepalive: true });
+  current = ep;
   say('');
   $('now').innerHTML = '<small>Checking for ads…</small>';
+  // Pick up the newest position from any device before starting.
+  await refreshProgress().catch(() => {});
+  const r = prog.get(ep.guid);
+  const start = r && !r.played && r.position > 5 ? r.position : 0;
   try {
-    ep.verdict = await check(ep);
-    persist();
+    verdicts[ep.guid] = await check(ep);
+    store('adfree.verdicts', verdicts);
     renderEpisodes();
-    if (ep.verdict === 'suspected') say('Loophole may be closed: upstream is serving more audio than the feed declares, so ads are probably in this file.');
+    if (verdicts[ep.guid] === 'suspected') say('Loophole may be closed: upstream is serving more audio than the feed declares, so ads are probably in this file.');
   } catch (err) {
     say(`Ad check failed: ${err.message}`);
   }
   player.src = audioUrl(ep);
-  player.addEventListener('loadedmetadata', () => { if (ep.position > 5) player.currentTime = ep.position; }, { once: true });
+  player.addEventListener('loadedmetadata', () => { if (start) player.currentTime = start; }, { once: true });
   await player.play().catch(() => {});
+  lastSave = Date.now();
   $('now').innerHTML = `<small>${esc(ep.title)}</small>`;
 }
 
-function savePosition(force) {
-  if (!current || !player.currentTime) return;
-  const now = Date.now();
-  if (!force && now - lastSave < 5000) return;
-  lastSave = now;
-  current.ep.position = player.currentTime;
-  persist();
+player.addEventListener('timeupdate', () => {
+  if (!current || !player.currentTime || Date.now() - lastSave < SAVE_EVERY_MS) return;
+  lastSave = Date.now();
+  pushPlayback(current);
+});
+player.addEventListener('pause', () => { if (current && !player.ended && player.currentTime) pushPlayback(current, { keepalive: true }); });
+player.addEventListener('ended', () => { if (current) { pushPlayback(current, { played: 1 }); renderEpisodes(); renderResume(); } });
+player.addEventListener('seeked', () => { if (current && player.currentTime) { lastSave = Date.now(); pushPlayback(current); } });
+player.addEventListener('error', () => { if (current) say('Playback failed. Check your connection or sign in again.'); });
+document.addEventListener('visibilitychange', () => {
+  if (!session) return;
+  if (document.hidden) { if (current && player.currentTime) pushPlayback(current, { keepalive: true }); }
+  else if (player.paused) refreshProgress().catch(() => {});
+});
+
+// ---- clicks ----
+$('eps').addEventListener('click', (e) => {
+  const d = e.target.dataset ?? {};
+  if (d.play !== undefined) play(episodes[Number(d.play)]);
+  else if (d.mark !== undefined) { const ep = episodes[Number(d.mark)]; setPlayed(ep, !prog.get(ep.guid)?.played); }
+  else if (d.more) { shown += PAGE; renderEpisodes(); }
+});
+$('resumeList').addEventListener('click', (e) => {
+  if (e.target.dataset?.resume === undefined) return;
+  const r = prog.get(JSON.parse($('resumeList').dataset.guids)[Number(e.target.dataset.resume)]);
+  if (r) play(fromRow(r));
+});
+$('feeds').addEventListener('change', loadFeed);
+
+// ---- sign in ----
+let registering = false;
+function showLogin(on) { $('login').hidden = !on; $('logout').hidden = on; }
+function setMode(reg) {
+  registering = reg;
+  $('loginTitle').textContent = reg ? 'Create account' : 'Sign in';
+  $('loginForm').querySelector('button').textContent = reg ? 'Create account' : 'Sign in';
+  $('toggle').textContent = reg ? 'I already have an account' : 'Create an account';
+  $('invite').hidden = !reg;
+  $('invite').required = reg;
+  $('pass').autocomplete = reg ? 'new-password' : 'current-password';
+}
+$('toggle').addEventListener('click', (e) => { e.preventDefault(); setMode(!registering); $('loginMsg').textContent = ''; });
+$('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('loginMsg').textContent = '';
+  try {
+    const out = await apiJson(registering ? '/auth/register' : '/auth/login', {
+      method: 'POST', body: { user: $('user').value, password: $('pass').value, invite: $('invite').value },
+    });
+    session = { token: out.token, user: out.user };
+    store('adfree.session', session);
+    $('pass').value = ''; $('invite').value = '';
+    start();
+  } catch (err) { $('loginMsg').textContent = err.message; }
+});
+
+function signOut() {
+  if (current && session && player.currentTime) pushPlayback(current, { keepalive: true });
+  player.pause();
+  player.removeAttribute('src');
+  current = null; session = null; prog = new Map();
+  try { localStorage.removeItem('adfree.session'); } catch { /* nothing to clear */ }
+  $('who').textContent = '';
+  $('now').innerHTML = '<small>Nothing playing</small>';
+  renderEpisodes();
+  renderResume();
+  showLogin(true);
+}
+$('logout').addEventListener('click', signOut);
+
+function start() {
+  showLogin(false);
+  $('who').textContent = session.user;
+  for (const r of load('adfree.prog.' + session.user, [])) prog.set(r.guid, r);
+  $('feeds').innerHTML = FEEDS.map((f) => `<option value="${esc(f.url)}">${esc(f.name)}</option>`).join('');
+  renderResume();
+  loadFeed();
+  refreshProgress().catch((err) => { if (!(err instanceof AuthError)) say(`Could not sync progress: ${err.message}`); });
 }
 
-player.addEventListener('timeupdate', () => savePosition(false));
-player.addEventListener('pause', () => savePosition(true));
-player.addEventListener('error', () => say('Playback failed. Is the worker reachable and the key right?'));
-
-$('add').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  say('Adding…');
-  try {
-    const feed = await addOrRefresh($('feedUrl').value);
-    $('feedUrl').value = '';
-    say('');
-    render(feed.url);
-  } catch (err) { say(err.message); }
-});
-$('cfg').addEventListener('submit', (e) => {
-  e.preventDefault();
-  cfg = { worker: $('workerUrl').value.trim().replace(/\/$/, ''), key: $('accessKey').value };
-  save('adfree.cfg', cfg);
-  say('Saved.');
-});
-$('feeds').addEventListener('change', renderEpisodes);
-$('eps').addEventListener('click', (e) => {
-  const i = e.target.dataset?.play;
-  if (i !== undefined) play(Number(i));
-});
-
-$('workerUrl').value = cfg.worker;
-$('accessKey').value = cfg.key;
-$('settings').open = !cfg.worker;
-render();
+setMode(false);
+if (session) start(); else showLogin(true);
