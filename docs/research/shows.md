@@ -17,6 +17,7 @@ Scope: stitched-in ads only. Host-read sponsor spots are part of the recording a
 | QAA | SoundCloud | none (static files) | everyone | n/a | public feed also lists Premium episodes |
 | Lions Led by Donkeys | SoundCloud | none (static files) | everyone | n/a | |
 | Galactic Book Club | Anchor / Spotify | none (static files) | everyone | n/a | |
+| The Caving Podcast (Matt Pelsor) | Podomatic | none (static files) | everyone | n/a | all 8 UAs identical on 3 episodes; the constant +15 s is a stale feed length. Ads are host-read only, out of scope |
 | The Scathing Atheist | Audioboom | yes, +150 to +210 s | Googlebot | UA still matters; partial from the edge | owner has Patreon feeds for the Puzzle in a Thunderstorm shows, which are ad-free; use those as private feeds |
 
 ## Redirect chains (who sits in front of the audio)
@@ -30,6 +31,6 @@ Most feeds route through download-measurement hops before the audio host: Podtra
 
 ## Not resolved
 
-- "Kirk Cameron's Saving Christmas" and one black-and-white show tile in the screenshot did not match anything searchable; need an exact name or RSS URL.
+- Screenshot tiles now all identified: the "Kirk Cameron's Saving Christmas" tile is God Awful Movies (a Patreon feed, to be added as a private feed in Settings, as with the other Puzzle in a Thunderstorm shows), and the black-and-white tile is The Caving Podcast.
 - Megaphone and Audioboom declare no `length`, so the app's ad badge will say "unchecked" for them. A fallback that compares sizes across UAs is possible but not built.
 - One home IP and one edge location per host; re-measure before relying on any row.

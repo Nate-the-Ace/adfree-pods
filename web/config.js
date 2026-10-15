@@ -25,4 +25,5 @@ export const FEEDS = [
   { name: 'Let\'s Talk to Lucy', art: ART('Podcasts211/v4/ed/2e/79/ed2e796e-345e-e24e-c1a4-ee86b8aae696/mza_15654334233938422449.jpg'), url: 'https://rss.libsyn.com/shows/587775/destinations/5102390.xml' },
   { name: '\'Til Death Do Us Blart', art: ART('Podcasts125/v4/6d/7d/8e/6d7d8e7f-5372-6690-823f-05c07f5bb248/mza_3995707257546182333.jpg'), url: 'https://feeds.acast.com/public/shows/66e25e2a9a7dcc160e7c1211' },
   { name: 'Galactic Book Club', art: ART('Podcasts221/v4/93/62/80/936280c6-d75a-75b7-871c-13fbd54f78e4/mza_8174466803559225095.jpg'), url: 'https://anchor.fm/s/10469404c/podcast/rss' },
+  { name: 'The Caving Podcast', art: ART('Podcasts126/v4/39/cc/0a/39cc0a4d-ff11-8732-e9a6-3bc16d9575a4/mza_449194862691363290.jpg'), url: 'https://cavingpodcast.podomatic.com/rss2.xml' },
 ];
