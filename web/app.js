@@ -20,11 +20,20 @@ let episodes = []; // open show's episodes, newest first
 let openFeed = null; // url of the show whose drawer is open
 let userFeeds = []; // this account's private feeds, from the server
 let latestAt = load('adfree.latest', {}); // feed url -> ms of its newest episode
-// Most recently updated show first; shows with no known date keep their listed order at the end.
+let lastFeed = load('adfree.lastFeed', null); // show you listened to most recently, on any device
+// The last-listened show is always first, then the rest by newest episode; shows with no known
+// date keep their listed order at the end.
 const shows = () => [...FEEDS, ...userFeeds]
   .map((f, i) => ({ f, i }))
-  .sort((a, b) => (latestAt[b.f.url] ?? -1) - (latestAt[a.f.url] ?? -1) || a.i - b.i)
+  .sort((a, b) => (b.f.url === lastFeed) - (a.f.url === lastFeed) || (latestAt[b.f.url] ?? -1) - (latestAt[a.f.url] ?? -1) || a.i - b.i)
   .map((x) => x.f);
+
+function setLastFeed(url) {
+  if (!url || url === lastFeed) return;
+  lastFeed = url;
+  store('adfree.lastFeed', url);
+  renderGrid();
+}
 let shown = PAGE;
 let current = null; // episode being played
 let lastSave = 0;
@@ -66,6 +75,8 @@ async function refreshProgress() {
   const rows = await apiJson('/progress');
   prog = new Map(rows.map((r) => [r.guid, r]));
   store('adfree.prog.' + session.user, rows);
+  const newest = rows.reduce((m, r) => (r.feed && (!m || r.updated > m.updated) ? r : m), null);
+  if (!current && newest && newest.feed !== lastFeed) { lastFeed = newest.feed; store('adfree.lastFeed', lastFeed); renderGrid(); }
   renderEpisodes();
   renderResume();
 }
@@ -160,16 +171,22 @@ function ago(ms) {
 
 // Ask the worker for each show's newest episode date, then re-sort the tiles.
 async function refreshLatest() {
-  try {
-    const q = new URLSearchParams();
-    for (const f of shows()) { q.append('url', f.url); q.append('hide', f.hide?.source ?? ''); }
-    const got = await apiJson('/latest?' + q);
-    for (const [u, t] of Object.entries(got)) if (t) latestAt[u] = t;
-    store('adfree.latest', latestAt);
-    renderGrid();
-  } catch (err) {
-    if (!(err instanceof AuthError)) console.warn('latest failed', err);
-  }
+  // Batches of 10: the Worker may make at most 50 subrequests per call, and each feed is one.
+  const all = shows();
+  const batches = [];
+  for (let i = 0; i < all.length; i += 10) batches.push(all.slice(i, i + 10));
+  await Promise.all(batches.map(async (batch) => {
+    try {
+      const q = new URLSearchParams();
+      for (const f of batch) { q.append('url', f.url); q.append('hide', f.hide?.source ?? ''); }
+      const got = await apiJson('/latest?' + q);
+      for (const [u, t] of Object.entries(got)) if (t) latestAt[u] = t;
+      store('adfree.latest', latestAt);
+      renderGrid();
+    } catch (err) {
+      if (!(err instanceof AuthError)) console.warn('latest failed', err);
+    }
+  }));
 }
 
 // Put the drawer right after the last tile of the selected tile's row, so rows below get pushed down.
@@ -249,6 +266,7 @@ async function play(ep) {
   if (current && current.guid !== ep.guid && player.currentTime) pushPlayback(current, { keepalive: true });
   current = ep;
   say('');
+  setLastFeed(ep.feed);
   $('now').innerHTML = '<small>Checking for ads…</small>';
   // Pick up the newest position from any device before starting.
   await refreshProgress().catch(() => {});

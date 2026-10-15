@@ -277,12 +277,11 @@ async function userFeeds(req: Request, url: URL, env: Env, user: string, c: Cors
 }
 
 // Newest episode date per feed, for ordering the show tiles. Reads only the start of each
-// feed (enough for the first wanted item) and caches the answer for 15 minutes. `hide` is a
-// title pattern for episodes that should not count (e.g. paywall teasers).
+// feed (enough for the first wanted item). `hide` is a title pattern for episodes that should
+// not count (e.g. paywall teasers). No Cache API here: on the free plan every cache call counts
+// toward the 50-subrequest limit per request, which 19 feeds x 3 calls blew straight through.
+// The page batches its asks and caches the answers itself.
 async function newestEpisode(feedUrl: string, hideSrc: string): Promise<number | null> {
-  const key = new Request('https://latest.cache.invalid/' + encodeURIComponent(feedUrl) + '|' + encodeURIComponent(hideSrc));
-  const hit = await caches.default.match(key);
-  if (hit) return (await hit.json<{ t: number | null }>()).t;
   let hide: RegExp | null = null;
   try {
     hide = hideSrc && hideSrc.length <= 120 ? new RegExp(hideSrc, 'i') : null;
@@ -316,7 +315,6 @@ async function newestEpisode(feedUrl: string, hideSrc: string): Promise<number |
   } catch {
     t = null;
   }
-  await caches.default.put(key, new Response(JSON.stringify({ t }), { headers: { 'cache-control': `max-age=${t === null ? 120 : 900}` } }));
   return t;
 }
 
@@ -324,7 +322,7 @@ async function newestEpisode(feedUrl: string, hideSrc: string): Promise<number |
 async function latest(url: URL, c: Cors): Promise<Response> {
   const urls = url.searchParams.getAll('url');
   const hides = url.searchParams.getAll('hide');
-  const ok = urls.map((u, i) => ({ u, h: hides[i] ?? '' })).filter((x) => /^https?:\/\//.test(x.u)).slice(0, 40);
+  const ok = urls.map((u, i) => ({ u, h: hides[i] ?? '' })).filter((x) => /^https?:\/\//.test(x.u)).slice(0, 15);
   const times = await Promise.all(ok.map((x) => newestEpisode(x.u, x.h)));
   return json(200, Object.fromEntries(ok.map((x, i) => [x.u, times[i]])), c);
 }
