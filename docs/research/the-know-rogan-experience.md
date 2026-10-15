@@ -12,10 +12,10 @@ Researched 2026-10-15. Producer: Cross Pond Productions. 92 episodes. Not Joe Ro
 | User-Agent (home IP) | Served bytes | Extra vs declared |
 |---|---|---|
 | Googlebot, bingbot, curl, wget, python-requests, Go-http-client, okhttp, AdsBot-Google, Mediapartners-Google | 153,880,566 | **+0 s (original)** |
-| Pocket Casts | 156,211,513 | +67 s |
-| "Libsyn" | 156,049,136 | +54 s |
-| Overcast | 159,531,774 | +149 s |
-| VLC | 159,472,934 | +196 s |
+| Pocket Casts | 156,211,513 | +97 s |
+| "Libsyn" | 156,049,136 | +90 s |
+| Overcast | 159,531,774 | +235 s |
+| VLC | 159,472,934 | +232 s |
 | Spotify | 160,760,037 | +286 s |
 | Apple Podcasts | 160,896,619 | +292 s |
 | Chrome (Windows) | 162,553,705 | +360 s |

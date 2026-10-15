@@ -19,6 +19,6 @@ Goal: understand how each podcast distributor delivers ads, how much they change
 | Insertion | Dynamic, stitched per request | Dynamic, stitched per request |
 | Publisher markers in feed | none visible | `libsyn:ad-marker` pre / mid / post with timestamps |
 | Original file served to | `Googlebot` UA only | `Googlebot`, `bingbot`, curl, wget, python-requests, Go, okhttp and other non-listener UAs; **every UA from a Cloudflare datacenter IP** |
-| Ads served to | everyone else, +400 to +1600 s | browsers and podcast apps from a home IP, +50 to +390 s |
+| Ads served to | everyone else, +400 to +1600 s | browsers and podcast apps from a home IP, up to about +390 s |
 | Ad time stable per UA? | yes | yes (same UA, same size, repeated) |
 | Fetch strategy in this repo | crawler UA | crawler UA (and the Worker already gets the original without it) |
