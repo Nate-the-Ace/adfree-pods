@@ -1,0 +1,6 @@
+name = "adfree-pods"
+main = "index.ts"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://nate-the-ace.github.io"
