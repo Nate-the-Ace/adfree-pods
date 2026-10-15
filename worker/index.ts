@@ -157,6 +157,7 @@ async function verifyPassword(env: Env, name: string, password: string): Promise
 async function removeUser(env: Env, name: string): Promise<void> {
   await env.DB.batch([
     env.DB.prepare('DELETE FROM progress WHERE user = ?').bind(name),
+    env.DB.prepare('DELETE FROM user_feeds WHERE user = ?').bind(name),
     env.DB.prepare('DELETE FROM sessions WHERE user = ?').bind(name),
     env.DB.prepare('DELETE FROM users WHERE name = ?').bind(name),
   ]);
@@ -238,6 +239,43 @@ async function admin(req: Request, url: URL, env: Env, me: User, c: Cors): Promi
   return json(404, { error: 'not found' }, c);
 }
 
+// Per-account private feeds (e.g. Patreon RSS links). The URL can carry a personal
+// token, so it lives in the database for that account only, never in the public code.
+async function userFeeds(req: Request, url: URL, env: Env, user: string, c: Cors): Promise<Response> {
+  if (req.method === 'GET') {
+    const { results } = await env.DB.prepare('SELECT id, name, url, art FROM user_feeds WHERE user = ? ORDER BY id').bind(user).all();
+    return json(200, results, c);
+  }
+  if (req.method === 'DELETE') {
+    await env.DB.prepare('DELETE FROM user_feeds WHERE id = ? AND user = ?').bind(Number(url.searchParams.get('id')), user).run();
+    return json(200, { ok: true }, c);
+  }
+  if (req.method === 'POST') {
+    const b = await readBody(req);
+    const feedUrl = String(b.url ?? '').trim();
+    if (!/^https?:\/\//.test(feedUrl) || feedUrl.length > 2000) return json(400, { error: 'enter the full feed URL (https://...)' }, c);
+    const count = (await env.DB.prepare('SELECT count(*) AS n FROM user_feeds WHERE user = ?').bind(user).first<{ n: number }>())?.n ?? 0;
+    if (count >= 30) return json(400, { error: 'limit of 30 private feeds reached' }, c);
+    let xml: string;
+    try {
+      const up = await fetch(feedUrl, { headers: { ...strategyFor(feedUrl).headers, accept: 'application/rss+xml, application/xml, text/xml' }, redirect: 'follow' });
+      if (!up.ok) return json(502, { error: `feed fetch failed: HTTP ${up.status}` }, c);
+      xml = await up.text();
+    } catch (err) {
+      return json(502, { error: `could not reach the feed: ${(err as Error).message}` }, c);
+    }
+    if (!/<rss[\s>]/.test(xml) || !/<enclosure/.test(xml)) return json(400, { error: 'that URL is not a podcast feed' }, c);
+    const title = xml.match(/<channel[^>]*>[\s\S]*?<title>(?:<!\[CDATA\[)?\s*([^<\]]*)/)?.[1]?.trim();
+    const art = xml.match(/<itunes:image[^>]*href="([^"]+)"/)?.[1] ?? xml.match(/<image>[\s\S]*?<url>\s*([^<\s]+)/)?.[1] ?? '';
+    const name = String(b.name ?? '').trim().slice(0, 80) || title || 'Private feed';
+    const row = await env.DB.prepare('INSERT INTO user_feeds (user, name, url, art, created) VALUES (?, ?, ?, ?, ?) RETURNING id, name, url, art')
+      .bind(user, name, feedUrl, art.replace(/&amp;/g, '&'), Date.now())
+      .first();
+    return json(200, row, c);
+  }
+  return json(405, { error: 'method not allowed' }, c);
+}
+
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null);
 
 async function progress(req: Request, env: Env, user: string, c: Cors): Promise<Response> {
@@ -281,6 +319,7 @@ export default {
 
     if (url.pathname === '/me') return json(200, { user: me.name, admin: me.admin }, c);
     if (url.pathname === '/progress') return progress(req, env, me.name, c);
+    if (url.pathname === '/feeds') return userFeeds(req, url, env, me.name, c);
     if (url.pathname.startsWith('/account/')) return account(req, url, env, me, c);
     if (url.pathname.startsWith('/admin/')) return admin(req, url, env, me, c);
 

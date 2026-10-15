@@ -32,6 +32,8 @@
     #grid { position:relative; display:grid; grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:14px; padding:6px 0 14px; background:var(--bg); }
     .tile { position:relative; padding:0; border:0; background:none; aspect-ratio:1; border-radius:16px; overflow:hidden;
             transition:filter .35s, opacity .35s, transform .2s, box-shadow .35s; box-shadow:0 2px 10px var(--shadow); }
+    .tile.noart { background:linear-gradient(135deg, var(--accent), #2a2540); }
+    .tile.noart .label { position:absolute; inset:0; display:flex; align-items:flex-end; background:none; font-size:.8rem; font-weight:600; }
     .tile img { width:100%; height:100%; display:block; object-fit:cover; }
     .tile:hover { transform:translateY(-2px); }
     .tile .label { position:absolute; left:0; right:0; bottom:0; padding:18px 8px 6px; font-size:.7rem; line-height:1.2; text-align:left; color:#fff;
@@ -128,6 +130,17 @@
         </form>
       </details>
       <div id="acctMsg" class="note" role="status"></div>
+    </section>
+    <section>
+      <h2>Private feeds</h2>
+      <p class="note">Paste a private RSS link, such as a Patreon feed. It is saved to your account only, never in the public code, and shows up as a tile on every device you sign in on.</p>
+      <form id="privForm">
+        <input id="privUrl" placeholder="Private feed URL" autocomplete="off" required>
+        <input id="privName" placeholder="Name (optional)" maxlength="80" autocomplete="off">
+        <button>Add feed</button>
+      </form>
+      <ul id="privList"></ul>
+      <div id="privMsg" class="note" role="status"></div>
     </section>
     <section id="adminSec" hidden>
       <h2>Invites</h2>
